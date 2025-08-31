@@ -39,12 +39,13 @@ export default function ProfileScreen() {
   });
 
   React.useEffect(() => {
-    if (profileQuery.data) {
+    if ((profileQuery as any).data) {
+      const data = (profileQuery as any).data;
       setFormData({
-        full_name: profileQuery.data.full_name || '',
-        age: profileQuery.data.age?.toString() || '',
-        height_cm: profileQuery.data.height_cm?.toString() || '',
-        weight_kg: profileQuery.data.weight_kg?.toString() || '',
+        full_name: data.full_name || '',
+        age: data.age?.toString() || '',
+        height_cm: data.height_cm?.toString() || '',
+        weight_kg: data.weight_kg?.toString() || '',
       });
     }
   }, [profileQuery.data]);
@@ -91,7 +92,7 @@ export default function ProfileScreen() {
             <User size={32} color="white" />
           </View>
           <Text style={styles.userName}>
-            {profileQuery.data?.full_name || user?.email?.split('@')[0] || 'ユーザー'}
+            {(profileQuery.data as any)?.full_name || user?.email?.split('@')[0] || 'ユーザー'}
           </Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
         </View>
@@ -125,7 +126,7 @@ export default function ProfileScreen() {
                 />
               ) : (
                 <Text style={styles.value}>
-                  {profileQuery.data?.full_name || '未設定'}
+                  {(profileQuery.data as any)?.full_name || '未設定'}
                 </Text>
               )}
             </View>
@@ -142,7 +143,7 @@ export default function ProfileScreen() {
                 />
               ) : (
                 <Text style={styles.value}>
-                  {profileQuery.data?.age ? `${profileQuery.data.age}歳` : '未設定'}
+                  {(profileQuery.data as any)?.age ? `${(profileQuery.data as any).age}歳` : '未設定'}
                 </Text>
               )}
             </View>
@@ -159,7 +160,7 @@ export default function ProfileScreen() {
                 />
               ) : (
                 <Text style={styles.value}>
-                  {profileQuery.data?.height_cm ? `${profileQuery.data.height_cm}cm` : '未設定'}
+                  {(profileQuery.data as any)?.height_cm ? `${(profileQuery.data as any).height_cm}cm` : '未設定'}
                 </Text>
               )}
             </View>
@@ -176,7 +177,7 @@ export default function ProfileScreen() {
                 />
               ) : (
                 <Text style={styles.value}>
-                  {profileQuery.data?.weight_kg ? `${profileQuery.data.weight_kg}kg` : '未設定'}
+                  {(profileQuery.data as any)?.weight_kg ? `${(profileQuery.data as any).weight_kg}kg` : '未設定'}
                 </Text>
               )}
             </View>

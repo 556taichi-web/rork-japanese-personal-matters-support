@@ -26,7 +26,7 @@ export const createNutritionLogProcedure = protectedProcedure
       .insert({
         ...input,
         user_id: ctx.user.id,
-      })
+      } as any)
       .select()
       .single();
 

@@ -47,10 +47,7 @@ export default function HomeScreen() {
   const profileQuery = trpc.profile.get.useQuery();
   
   // Fetch recent workouts for stats
-  const workoutsQuery = trpc.workouts.list.useQuery({
-    limit: 10,
-    startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Last 7 days
-  });
+  const workoutsQuery = trpc.workouts.list.useQuery({});
   
   // Fetch today's nutrition logs
   const todayNutritionQuery = trpc.nutrition.logs.useQuery({
@@ -58,9 +55,9 @@ export default function HomeScreen() {
   });
 
   const stats: StatCard[] = useMemo(() => {
-    const todayCalories = todayNutritionQuery.data?.reduce((sum, log) => sum + (log.calories || 0), 0) || 0;
+    const todayCalories = todayNutritionQuery.data?.reduce((sum: number, log: any) => sum + (log.calories || 0), 0) || 0;
     const weeklyWorkouts = workoutsQuery.data?.length || 0;
-    const currentWeight = profileQuery.data?.weight_kg || 0;
+    const currentWeight = (profileQuery.data as any)?.weight_kg || 0;
     
     return [
       {
@@ -134,7 +131,7 @@ export default function HomeScreen() {
         <View style={styles.greeting}>
           <Text style={styles.greetingText}>おはようございます</Text>
           <Text style={styles.userName}>
-            {profileQuery.data?.full_name || user?.email?.split('@')[0] || 'ユーザー'}さん
+            {(profileQuery.data as any)?.full_name || user?.email?.split('@')[0] || 'ユーザー'}さん
           </Text>
         </View>
         <Text style={styles.motivationText}>今日も一緒に頑張りましょう！</Text>
