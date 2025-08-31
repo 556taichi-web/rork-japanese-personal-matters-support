@@ -1,11 +1,12 @@
 import createContextHook from '@nkzw/create-context-hook';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase, type Profile } from './supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export interface User {
   id: string;
   email: string;
-  name?: string;
+  profile?: Profile;
 }
 
 export interface AuthState {
@@ -16,45 +17,93 @@ export interface AuthState {
   logout: () => Promise<void>;
 }
 
-const AUTH_STORAGE_KEY = 'auth_user';
-
 export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadStoredUser = useCallback(async () => {
+  const loadUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
     try {
-      const storedUser = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading profile:', error);
+        return null;
       }
+
+      return profile;
     } catch (error) {
-      console.error('Failed to load stored user:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Failed to load user profile:', error);
+      return null;
     }
   }, []);
 
+  const initializeAuth = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const profile = await loadUserProfile(session.user);
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          profile: profile || undefined,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to initialize auth:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadUserProfile]);
+
   useEffect(() => {
-    loadStoredUser();
-  }, [loadStoredUser]);
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (session?.user) {
+          const profile = await loadUserProfile(session.user);
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            profile: profile || undefined,
+          });
+        } else {
+          setUser(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [initializeAuth, loadUserProfile]);
 
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // For now, simulate login with mock data
-      if (email && password) {
-        const mockUser: User = {
-          id: '1',
-          email,
-          name: email.split('@')[0],
-        };
-        
-        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockUser));
-        setUser(mockUser);
-      } else {
-        throw new Error('メールアドレスとパスワードを入力してください');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data.user) {
+        const profile = await loadUserProfile(data.user);
+        setUser({
+          id: data.user.id,
+          email: data.user.email!,
+          profile: profile || undefined,
+        });
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -62,24 +111,32 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [loadUserProfile]);
 
   const register = useCallback(async (email: string, password: string, name?: string) => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // For now, simulate registration with mock data
-      if (email && password) {
-        const mockUser: User = {
-          id: '1',
-          email,
-          name: name || email.split('@')[0],
-        };
-        
-        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockUser));
-        setUser(mockUser);
-      } else {
-        throw new Error('メールアドレスとパスワードを入力してください');
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data.user) {
+        const profile = await loadUserProfile(data.user);
+        setUser({
+          id: data.user.id,
+          email: data.user.email!,
+          profile: profile || undefined,
+        });
       }
     } catch (error) {
       console.error('Registration failed:', error);
@@ -87,11 +144,14 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [loadUserProfile]);
 
   const logout = useCallback(async () => {
     try {
-      await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+      }
       setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
