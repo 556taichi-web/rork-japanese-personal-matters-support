@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { 
@@ -22,6 +23,8 @@ import {
   Heart
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { useAuth } from '@/lib/auth';
 
 interface SettingItem {
   id: string;
@@ -32,6 +35,30 @@ interface SettingItem {
 }
 
 export default function ProfileScreen() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'ログアウト',
+      'ログアウトしますか？',
+      [
+        {
+          text: 'キャンセル',
+          style: 'cancel',
+        },
+        {
+          text: 'ログアウト',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/auth/login');
+          },
+        },
+      ]
+    );
+  };
+
   const settingsItems: SettingItem[] = [
     {
       id: 'goals',
@@ -93,8 +120,8 @@ export default function ProfileScreen() {
             </LinearGradient>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>田中 美咲</Text>
-            <Text style={styles.profileEmail}>misaki.tanaka@example.com</Text>
+            <Text style={styles.profileName}>{user?.name || 'ユーザー'}</Text>
+            <Text style={styles.profileEmail}>{user?.email || 'email@example.com'}</Text>
           </View>
         </View>
         
@@ -148,7 +175,7 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>アカウント</Text>
           <TouchableOpacity
             style={[styles.settingItem, styles.logoutItem]}
-            onPress={() => console.log('Logout pressed')}
+            onPress={handleLogout}
             activeOpacity={0.7}
           >
             <View style={styles.settingIcon}>
