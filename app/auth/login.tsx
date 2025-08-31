@@ -115,6 +115,17 @@ export default function LoginScreen() {
                 </Text>
               </TouchableOpacity>
 
+              <TouchableOpacity
+                style={styles.testButton}
+                onPress={() => {
+                  setEmail('test@example.com');
+                  setPassword('password123');
+                }}
+                testID="fill-test-credentials"
+              >
+                <Text style={styles.testButtonText}>テスト用アカウントを入力</Text>
+              </TouchableOpacity>
+
               <View style={styles.registerContainer}>
                 <Text style={styles.registerText}>アカウントをお持ちでない方は</Text>
                 <TouchableOpacity onPress={navigateToRegister} testID="register-link">
@@ -228,5 +239,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 4,
+  },
+  testButton: {
+    backgroundColor: '#E5E7EB',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  testButtonText: {
+    color: '#6B7280',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

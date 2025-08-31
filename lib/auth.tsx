@@ -23,11 +23,14 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
 
   const loadUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
     try {
+      console.log('Loading profile for user:', supabaseUser.id);
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .single();
+
+      console.log('Profile query result:', { profile: !!profile, error: error?.message });
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading profile:', error);
@@ -43,7 +46,14 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
 
   const initializeAuth = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Initializing auth...');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      console.log('Session check:', { 
+        hasSession: !!session, 
+        userEmail: session?.user?.email,
+        error: error?.message 
+      });
       
       if (session?.user) {
         const profile = await loadUserProfile(session.user);
@@ -65,7 +75,11 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        console.log('Auth state changed:', { 
+          event, 
+          userEmail: session?.user?.email,
+          hasSession: !!session 
+        });
         
         if (session?.user) {
           const profile = await loadUserProfile(session.user);
@@ -89,16 +103,35 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
     setIsLoading(true);
     try {
       console.log('Attempting login with email:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.toLowerCase().trim(),
         password,
       });
 
-      console.log('Login response:', { data: data?.user?.email, error });
+      console.log('Login response:', { 
+        user: data?.user?.email, 
+        session: !!data?.session,
+        error: error?.message,
+        errorCode: error?.status
+      });
 
       if (error) {
-        console.error('Supabase auth error:', error);
-        throw new Error(`Login failed: ${error.message}`);
+        console.error('Supabase auth error details:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        });
+        
+        // Provide more specific error messages
+        let errorMessage = 'ログインに失敗しました';
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'メールアドレスまたはパスワードが正しくありません。\n\nテスト用アカウント:\nEmail: test@example.com\nPassword: password123';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'メールアドレスの確認が必要です。メールをご確認ください。';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       if (data.user) {
@@ -123,7 +156,7 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
     try {
       console.log('Attempting registration with email:', email);
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.toLowerCase().trim(),
         password,
         options: {
           data: {
@@ -132,35 +165,30 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
         },
       });
 
-      console.log('Registration response:', { data: data?.user?.email, error });
+      console.log('Registration response:', { 
+        user: data?.user?.email, 
+        session: !!data?.session,
+        error: error?.message 
+      });
 
       if (error) {
         console.error('Supabase registration error:', error);
-        throw new Error(`Registration failed: ${error.message}`);
+        let errorMessage = '登録に失敗しました';
+        if (error.message.includes('User already registered')) {
+          errorMessage = 'このメールアドレスは既に登録されています。ログインしてください。';
+        } else if (error.message.includes('Password should be')) {
+          errorMessage = 'パスワードは6文字以上で入力してください。';
+        }
+        throw new Error(errorMessage);
       }
 
       if (data.user) {
         console.log('User registered successfully:', data.user.email);
         
-        // Create profile record
-        try {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: data.user.id,
-              email: data.user.email!,
-              full_name: name || null,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            } as any);
-
-          if (profileError) {
-            console.error('Profile creation error:', profileError);
-          }
-        } catch (profileError) {
-          console.error('Failed to create profile:', profileError);
-        }
-
+        // Profile creation is now handled by the trigger
+        // Wait a moment for the trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const profile = await loadUserProfile(data.user);
         setUser({
           id: data.user.id,
@@ -178,9 +206,12 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
 
   const logout = useCallback(async () => {
     try {
+      console.log('Logging out user...');
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Logout error:', error);
+      } else {
+        console.log('User logged out successfully');
       }
       setUser(null);
     } catch (error) {

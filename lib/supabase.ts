@@ -6,6 +6,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://eybllyvdrafsgzpnelbu.supabase.co';
 const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5YmxseXZkcmFmc2d6cG5lbGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTc2NTcsImV4cCI6MjA3MTg5MzY1N30.SDvf43hd2PBxOGz7OP_pXhTAVVMliwlx1DP4n6vi2P4';
 
+console.log('Environment check:', {
+  hasExpoConfig: !!Constants.expoConfig?.extra,
+  hasProcessEnv: !!process.env.EXPO_PUBLIC_SUPABASE_URL,
+  supabaseUrl: supabaseUrl?.substring(0, 30) + '...',
+  hasAnonKey: !!supabaseAnonKey
+});
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables');
   console.error('supabaseUrl:', supabaseUrl);
@@ -13,7 +20,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-console.log('Supabase initialized with URL:', supabaseUrl);
+console.log('Supabase initialized successfully');
 
 // Database types
 export type Json =
@@ -292,6 +299,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: Platform.OS === 'web',
   },
 });
+
+console.log('Supabase client created for platform:', Platform.OS);
 
 // Export types for use in components
 export type Profile = Database['public']['Tables']['profiles']['Row'];
