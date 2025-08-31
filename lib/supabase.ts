@@ -3,12 +3,17 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://eybllyvdrafsgzpnelbu.supabase.co';
+const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5YmxseXZkcmFmc2d6cG5lbGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTc2NTcsImV4cCI6MjA3MTg5MzY1N30.SDvf43hd2PBxOGz7OP_pXhTAVVMliwlx1DP4n6vi2P4';
 
 if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables');
+  console.error('supabaseUrl:', supabaseUrl);
+  console.error('supabaseAnonKey:', supabaseAnonKey ? 'present' : 'missing');
   throw new Error('Missing Supabase environment variables');
 }
+
+console.log('Supabase initialized with URL:', supabaseUrl);
 
 // Database types
 export type Json =

@@ -46,7 +46,7 @@ export default function RegisterScreen() {
     setIsLoading(true);
     try {
       await register(email.trim(), password, name.trim());
-      router.replace('/home');
+      router.replace('/(tabs)/home');
     } catch (error) {
       Alert.alert('登録エラー', error instanceof Error ? error.message : '登録に失敗しました');
     } finally {
