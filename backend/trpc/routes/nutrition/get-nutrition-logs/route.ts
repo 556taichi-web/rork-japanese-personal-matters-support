@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { protectedProcedure } from '../../../create-context';
-import { supabase } from '@/lib/supabase';
 
 const getNutritionLogsSchema = z.object({
   date: z.string().optional(),
@@ -14,7 +13,7 @@ export const getNutritionLogsProcedure = protectedProcedure
   .query(async ({ ctx, input }) => {
     console.log('Getting nutrition logs for user:', ctx.user.id, input);
     
-    let query = supabase
+    let query = (ctx.supabase as any)
       .from('nutrition_logs')
       .select('*')
       .eq('user_id', ctx.user.id)

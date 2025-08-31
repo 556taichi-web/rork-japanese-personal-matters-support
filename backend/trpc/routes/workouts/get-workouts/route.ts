@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { protectedProcedure } from '../../../create-context';
-import { supabase } from '@/lib/supabase';
 
 const getWorkoutsSchema = z.object({
   limit: z.number().optional().default(10),
@@ -14,7 +13,7 @@ export const getWorkoutsProcedure = protectedProcedure
   .query(async ({ ctx, input }) => {
     console.log('Getting workouts for user:', ctx.user.id, input);
     
-    let query = supabase
+    let query = (ctx.supabase as any)
       .from('workouts')
       .select(`
         *,

@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { protectedProcedure } from '../../../create-context';
-import { supabase } from '@/lib/supabase';
 
 const createWorkoutSchema = z.object({
   title: z.string().min(1),
@@ -28,7 +27,7 @@ export const createWorkoutProcedure = protectedProcedure
     const { exercises, ...workoutData } = input;
     
     // Create workout
-    const { data: workout, error: workoutError } = await supabase
+    const { data: workout, error: workoutError } = await (ctx.supabase as any)
       .from('workouts')
       .insert({
         ...workoutData,
@@ -49,7 +48,7 @@ export const createWorkoutProcedure = protectedProcedure
         workout_id: workout.id,
       }));
 
-      const { error: itemsError } = await supabase
+      const { error: itemsError } = await (ctx.supabase as any)
         .from('workout_items')
         .insert(workoutItems);
 
@@ -60,7 +59,7 @@ export const createWorkoutProcedure = protectedProcedure
     }
 
     // Fetch the complete workout with items
-    const { data: completeWorkout, error: fetchError } = await supabase
+    const { data: completeWorkout, error: fetchError } = await (ctx.supabase as any)
       .from('workouts')
       .select(`
         *,

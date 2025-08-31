@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { protectedProcedure } from '../../../create-context';
-import { supabase } from '@/lib/supabase';
+import { Database } from '@/lib/supabase';
 
 const updateProfileSchema = z.object({
   full_name: z.string().optional(),
@@ -17,12 +17,14 @@ export const updateProfileProcedure = protectedProcedure
   .mutation(async ({ ctx, input }) => {
     console.log('Updating profile for user:', ctx.user.id, input);
     
-    const { data: profile, error } = await supabase
+    const updateData: Database['public']['Tables']['profiles']['Update'] = {
+      ...input,
+      updated_at: new Date().toISOString(),
+    };
+    
+    const { data: profile, error } = await (ctx.supabase as any)
       .from('profiles')
-      .update({
-        ...input,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', ctx.user.id)
       .select()
       .single();

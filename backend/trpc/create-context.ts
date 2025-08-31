@@ -1,7 +1,18 @@
 import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { supabase } from "@/lib/supabase";
+import { createClient } from '@supabase/supabase-js';
+import { Database } from "@/lib/supabase";
+
+// Create server-side Supabase client
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY; // In production, use service role key
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
 
 // Context creation function
 export const createContext = async (opts: FetchCreateContextFnOptions) => {
@@ -24,6 +35,7 @@ export const createContext = async (opts: FetchCreateContextFnOptions) => {
   return {
     req: opts.req,
     user,
+    supabase,
   };
 };
 

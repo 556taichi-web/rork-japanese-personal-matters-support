@@ -1,11 +1,10 @@
 import { protectedProcedure } from '../../../create-context';
-import { supabase } from '@/lib/supabase';
 
 export const getProfileProcedure = protectedProcedure
   .query(async ({ ctx }) => {
     console.log('Getting profile for user:', ctx.user.id);
     
-    const { data: profile, error } = await supabase
+    const { data: profile, error } = await ctx.supabase
       .from('profiles')
       .select('*')
       .eq('id', ctx.user.id)
