@@ -33,7 +33,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await login(email.trim(), password);
-      router.replace('/(tabs)');
+      router.replace('/home');
     } catch (error) {
       Alert.alert('ログインエラー', error instanceof Error ? error.message : 'ログインに失敗しました');
     } finally {
