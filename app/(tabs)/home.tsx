@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { 
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth';
+import { trpc } from '@/lib/trpc';
 
 interface StatCard {
   id: string;
@@ -40,41 +42,61 @@ interface QuickAction {
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  
+  // Fetch user profile
+  const profileQuery = trpc.profile.get.useQuery();
+  
+  // Fetch recent workouts for stats
+  const workoutsQuery = trpc.workouts.list.useQuery({
+    limit: 10,
+    startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Last 7 days
+  });
+  
+  // Fetch today's nutrition logs
+  const todayNutritionQuery = trpc.nutrition.logs.useQuery({
+    date: new Date().toISOString().split('T')[0],
+  });
 
-  const stats: StatCard[] = [
-    {
-      id: 'weight',
-      title: '体重',
-      value: '52.0kg',
-      change: '-0.5kg',
-      icon: <TrendingUp size={20} color="white" />,
-      color: '#10B981',
-    },
-    {
-      id: 'workouts',
-      title: '今週の運動',
-      value: '3回',
-      change: '+1回',
-      icon: <Activity size={20} color="white" />,
-      color: '#3B82F6',
-    },
-    {
-      id: 'calories',
-      title: '今日のカロリー',
-      value: '1,450',
-      change: '-200kcal',
-      icon: <Zap size={20} color="white" />,
-      color: '#F59E0B',
-    },
-    {
-      id: 'streak',
-      title: '継続日数',
-      value: '12日',
-      change: '+1日',
-      icon: <Award size={20} color="white" />,
-      color: '#EF4444',
-    },
-  ];
+  const stats: StatCard[] = useMemo(() => {
+    const todayCalories = todayNutritionQuery.data?.reduce((sum, log) => sum + (log.calories || 0), 0) || 0;
+    const weeklyWorkouts = workoutsQuery.data?.length || 0;
+    const currentWeight = profileQuery.data?.weight_kg || 0;
+    
+    return [
+      {
+        id: 'weight',
+        title: '体重',
+        value: currentWeight > 0 ? `${currentWeight}kg` : '未設定',
+        change: '-0.5kg', // TODO: Calculate from historical data
+        icon: <TrendingUp size={20} color="white" />,
+        color: '#10B981',
+      },
+      {
+        id: 'workouts',
+        title: '今週の運動',
+        value: `${weeklyWorkouts}回`,
+        change: '+1回', // TODO: Calculate from previous week
+        icon: <Activity size={20} color="white" />,
+        color: '#3B82F6',
+      },
+      {
+        id: 'calories',
+        title: '今日のカロリー',
+        value: todayCalories.toLocaleString(),
+        change: '-200kcal', // TODO: Calculate from target
+        icon: <Zap size={20} color="white" />,
+        color: '#F59E0B',
+      },
+      {
+        id: 'streak',
+        title: '継続日数',
+        value: '12日', // TODO: Calculate streak
+        change: '+1日',
+        icon: <Award size={20} color="white" />,
+        color: '#EF4444',
+      },
+    ];
+  }, [profileQuery.data, workoutsQuery.data, todayNutritionQuery.data]);
 
   const quickActions: QuickAction[] = [
     {
@@ -111,7 +133,9 @@ export default function HomeScreen() {
       >
         <View style={styles.greeting}>
           <Text style={styles.greetingText}>おはようございます</Text>
-          <Text style={styles.userName}>{user?.name || 'ユーザー'}さん</Text>
+          <Text style={styles.userName}>
+            {profileQuery.data?.full_name || user?.email?.split('@')[0] || 'ユーザー'}さん
+          </Text>
         </View>
         <Text style={styles.motivationText}>今日も一緒に頑張りましょう！</Text>
       </LinearGradient>
@@ -121,58 +145,67 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>今日の状況</Text>
-          <View style={styles.statsGrid}>
-            {stats.map((stat) => (
-              <View key={stat.id} style={styles.statCard}>
-                <View style={[styles.statIcon, { backgroundColor: stat.color }]}>
-                  {stat.icon}
+        {(profileQuery.isLoading || workoutsQuery.isLoading || todayNutritionQuery.isLoading) ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#FF6B9D" />
+            <Text style={styles.loadingText}>データを読み込み中...</Text>
+          </View>
+        ) : (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>今日の状況</Text>
+              <View style={styles.statsGrid}>
+                {stats.map((stat) => (
+                  <View key={stat.id} style={styles.statCard}>
+                    <View style={[styles.statIcon, { backgroundColor: stat.color }]}>
+                      {stat.icon}
+                    </View>
+                    <Text style={styles.statValue}>{stat.value}</Text>
+                    <Text style={styles.statTitle}>{stat.title}</Text>
+                    <Text style={[styles.statChange, { color: stat.color }]}>
+                      {stat.change}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>クイックアクション</Text>
+              {quickActions.map((action) => (
+                <TouchableOpacity
+                  key={action.id}
+                  style={styles.actionCard}
+                  onPress={action.onPress}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: action.color }]}>
+                    {action.icon}
+                  </View>
+                  <View style={styles.actionContent}>
+                    <Text style={styles.actionTitle}>{action.title}</Text>
+                    <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>今日のアドバイス</Text>
+              <View style={styles.adviceCard}>
+                <View style={styles.adviceIcon}>
+                  <Clock size={24} color="#FF6B9D" />
                 </View>
-                <Text style={styles.statValue}>{stat.value}</Text>
-                <Text style={styles.statTitle}>{stat.title}</Text>
-                <Text style={[styles.statChange, { color: stat.color }]}>
-                  {stat.change}
-                </Text>
+                <View style={styles.adviceContent}>
+                  <Text style={styles.adviceTitle}>水分補給を忘れずに</Text>
+                  <Text style={styles.adviceText}>
+                    1日2リットルの水分摂取を目標にしましょう。運動前後は特に重要です。
+                  </Text>
+                </View>
               </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>クイックアクション</Text>
-          {quickActions.map((action) => (
-            <TouchableOpacity
-              key={action.id}
-              style={styles.actionCard}
-              onPress={action.onPress}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: action.color }]}>
-                {action.icon}
-              </View>
-              <View style={styles.actionContent}>
-                <Text style={styles.actionTitle}>{action.title}</Text>
-                <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>今日のアドバイス</Text>
-          <View style={styles.adviceCard}>
-            <View style={styles.adviceIcon}>
-              <Clock size={24} color="#FF6B9D" />
             </View>
-            <View style={styles.adviceContent}>
-              <Text style={styles.adviceTitle}>水分補給を忘れずに</Text>
-              <Text style={styles.adviceText}>
-                1日2リットルの水分摂取を目標にしましょう。運動前後は特に重要です。
-              </Text>
-            </View>
-          </View>
-        </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -331,5 +364,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 48,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
   },
 });
