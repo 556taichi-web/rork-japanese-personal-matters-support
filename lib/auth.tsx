@@ -88,16 +88,21 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log('Attempting login with email:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      console.log('Login response:', { data: data?.user?.email, error });
+
       if (error) {
-        throw new Error(error.message);
+        console.error('Supabase auth error:', error);
+        throw new Error(`Login failed: ${error.message}`);
       }
 
       if (data.user) {
+        console.log('User logged in successfully:', data.user.email);
         const profile = await loadUserProfile(data.user);
         setUser({
           id: data.user.id,
@@ -116,6 +121,7 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
   const register = useCallback(async (email: string, password: string, name?: string) => {
     setIsLoading(true);
     try {
+      console.log('Attempting registration with email:', email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -126,11 +132,35 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
         },
       });
 
+      console.log('Registration response:', { data: data?.user?.email, error });
+
       if (error) {
-        throw new Error(error.message);
+        console.error('Supabase registration error:', error);
+        throw new Error(`Registration failed: ${error.message}`);
       }
 
       if (data.user) {
+        console.log('User registered successfully:', data.user.email);
+        
+        // Create profile record
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: data.user.email!,
+              full_name: name || null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            } as any);
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+          }
+        } catch (profileError) {
+          console.error('Failed to create profile:', profileError);
+        }
+
         const profile = await loadUserProfile(data.user);
         setUser({
           id: data.user.id,
