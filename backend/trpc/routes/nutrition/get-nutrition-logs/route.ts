@@ -13,7 +13,7 @@ export const getNutritionLogsProcedure = protectedProcedure
   .query(async ({ ctx, input }) => {
     console.log('Getting nutrition logs for user:', ctx.user.id, input);
     
-    let query = (ctx.supabase as any)
+    let query = ctx.supabase
       .from('nutrition_logs')
       .select('*')
       .eq('user_id', ctx.user.id)

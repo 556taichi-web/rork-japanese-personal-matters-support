@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { protectedProcedure } from '../../../create-context';
-import { Database } from '@/lib/supabase';
 
 const updateProfileSchema = z.object({
   full_name: z.string().optional(),
@@ -17,7 +16,7 @@ export const updateProfileProcedure = protectedProcedure
   .mutation(async ({ ctx, input }) => {
     console.log('Updating profile for user:', ctx.user.id, input);
     
-    const updateData: Database['public']['Tables']['profiles']['Update'] = {
+    const updateData = {
       ...input,
       updated_at: new Date().toISOString(),
     };

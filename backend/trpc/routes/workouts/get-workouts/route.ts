@@ -13,7 +13,7 @@ export const getWorkoutsProcedure = protectedProcedure
   .query(async ({ ctx, input }) => {
     console.log('Getting workouts for user:', ctx.user.id, input);
     
-    let query = (ctx.supabase as any)
+    let query = ctx.supabase
       .from('workouts')
       .select(`
         *,
