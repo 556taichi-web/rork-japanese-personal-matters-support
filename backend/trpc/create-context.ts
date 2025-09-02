@@ -19,6 +19,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, 
   }
 });
 
+// Type assertion to ensure proper typing
+export type SupabaseClient = typeof supabase;
+
 // Context creation function
 export const createContext = async (opts: FetchCreateContextFnOptions) => {
   // Get the authorization header

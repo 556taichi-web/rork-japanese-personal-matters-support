@@ -27,12 +27,12 @@ export const createWorkoutProcedure = protectedProcedure
     const { exercises, ...workoutData } = input;
     
     // Create workout
-    const { data: workout, error: workoutError } = await (ctx.supabase as any)
+    const { data: workout, error: workoutError } = await ctx.supabase
       .from('workouts')
       .insert({
         ...workoutData,
         user_id: ctx.user.id,
-      })
+      } as any)
       .select()
       .single();
 
@@ -45,12 +45,12 @@ export const createWorkoutProcedure = protectedProcedure
     if (exercises && exercises.length > 0) {
       const workoutItems = exercises.map(exercise => ({
         ...exercise,
-        workout_id: workout.id,
+        workout_id: (workout as any)?.id,
       }));
 
-      const { error: itemsError } = await (ctx.supabase as any)
+      const { error: itemsError } = await ctx.supabase
         .from('workout_items')
-        .insert(workoutItems);
+        .insert(workoutItems as any);
 
       if (itemsError) {
         console.error('Error creating workout items:', itemsError);
@@ -59,13 +59,13 @@ export const createWorkoutProcedure = protectedProcedure
     }
 
     // Fetch the complete workout with items
-    const { data: completeWorkout, error: fetchError } = await (ctx.supabase as any)
+    const { data: completeWorkout, error: fetchError } = await ctx.supabase
       .from('workouts')
       .select(`
         *,
         workout_items(*)
       `)
-      .eq('id', workout.id)
+      .eq('id', (workout as any)?.id)
       .single();
 
     if (fetchError) {

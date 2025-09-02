@@ -274,6 +274,35 @@ export interface Database {
           created_at?: string
         }
       }
+      chat_messages: {
+        Row: {
+          id: string
+          user_id: string
+          message: string
+          role: 'user' | 'assistant'
+          context_type: 'general' | 'workout' | 'nutrition' | 'health'
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          message: string
+          role: 'user' | 'assistant'
+          context_type?: 'general' | 'workout' | 'nutrition' | 'health'
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          message?: string
+          role?: 'user' | 'assistant'
+          context_type?: 'general' | 'workout' | 'nutrition' | 'health'
+          metadata?: Json | null
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -309,3 +338,4 @@ export type WorkoutItem = Database['public']['Tables']['workout_items']['Row'];
 export type NutritionTarget = Database['public']['Tables']['nutrition_targets']['Row'];
 export type NutritionLog = Database['public']['Tables']['nutrition_logs']['Row'];
 export type Summary = Database['public']['Tables']['summaries']['Row'];
+export type ChatMessage = Database['public']['Tables']['chat_messages']['Row'];

@@ -21,12 +21,12 @@ export const createNutritionLogProcedure = protectedProcedure
   .mutation(async ({ ctx, input }) => {
     console.log('Creating nutrition log for user:', ctx.user.id, input);
     
-    const { data: log, error } = await (ctx.supabase as any)
+    const { data: log, error } = await ctx.supabase
       .from('nutrition_logs')
       .insert({
         ...input,
         user_id: ctx.user.id,
-      } as any)
+      })
       .select()
       .single();
 

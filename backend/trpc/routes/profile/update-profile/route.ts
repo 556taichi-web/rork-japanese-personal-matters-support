@@ -21,7 +21,7 @@ export const updateProfileProcedure = protectedProcedure
       updated_at: new Date().toISOString(),
     };
     
-    const { data: profile, error } = await (ctx.supabase as any)
+    const { data: profile, error } = await ctx.supabase
       .from('profiles')
       .update(updateData)
       .eq('id', ctx.user.id)
