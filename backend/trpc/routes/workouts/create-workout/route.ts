@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { protectedProcedure } from '../../../create-context';
+import { Database } from '@/lib/supabase';
 
 const createWorkoutSchema = z.object({
   title: z.string().min(1),
@@ -27,12 +28,14 @@ export const createWorkoutProcedure = protectedProcedure
     const { exercises, ...workoutData } = input;
     
     // Create workout
-    const { data: workout, error: workoutError } = await ctx.supabase
+    const workoutInsertData: Database['public']['Tables']['workouts']['Insert'] = {
+      ...workoutData,
+      user_id: ctx.user.id,
+    };
+    
+    const { data: workout, error: workoutError } = await (ctx.supabase as any)
       .from('workouts')
-      .insert({
-        ...workoutData,
-        user_id: ctx.user.id,
-      } as any)
+      .insert(workoutInsertData)
       .select()
       .single();
 
@@ -43,14 +46,14 @@ export const createWorkoutProcedure = protectedProcedure
 
     // Create workout items if provided
     if (exercises && exercises.length > 0) {
-      const workoutItems = exercises.map(exercise => ({
+      const workoutItems: Database['public']['Tables']['workout_items']['Insert'][] = exercises.map(exercise => ({
         ...exercise,
-        workout_id: (workout as any)?.id,
+        workout_id: workout?.id,
       }));
 
-      const { error: itemsError } = await ctx.supabase
+      const { error: itemsError } = await (ctx.supabase as any)
         .from('workout_items')
-        .insert(workoutItems as any);
+        .insert(workoutItems);
 
       if (itemsError) {
         console.error('Error creating workout items:', itemsError);
@@ -59,13 +62,13 @@ export const createWorkoutProcedure = protectedProcedure
     }
 
     // Fetch the complete workout with items
-    const { data: completeWorkout, error: fetchError } = await ctx.supabase
+    const { data: completeWorkout, error: fetchError } = await (ctx.supabase as any)
       .from('workouts')
       .select(`
         *,
         workout_items(*)
       `)
-      .eq('id', (workout as any)?.id)
+      .eq('id', workout?.id)
       .single();
 
     if (fetchError) {

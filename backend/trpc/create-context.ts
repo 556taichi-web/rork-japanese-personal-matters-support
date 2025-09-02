@@ -1,7 +1,7 @@
 import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Database } from "@/lib/supabase";
 
 // Create server-side Supabase client
@@ -12,15 +12,15 @@ if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+export const supabase: SupabaseClient<Database> = createClient<Database>(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
   }
 });
 
-// Type assertion to ensure proper typing
-export type SupabaseClient = typeof supabase;
+// Type for the Supabase client
+export type TypedSupabaseClient = SupabaseClient<Database>;
 
 // Context creation function
 export const createContext = async (opts: FetchCreateContextFnOptions) => {

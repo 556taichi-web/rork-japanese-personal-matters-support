@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { protectedProcedure } from '../../../create-context';
+import { Database } from '@/lib/supabase';
 
 const createNutritionLogSchema = z.object({
   date: z.string(),
@@ -21,12 +22,14 @@ export const createNutritionLogProcedure = protectedProcedure
   .mutation(async ({ ctx, input }) => {
     console.log('Creating nutrition log for user:', ctx.user.id, input);
     
-    const { data: log, error } = await ctx.supabase
+    const insertData: Database['public']['Tables']['nutrition_logs']['Insert'] = {
+      ...input,
+      user_id: ctx.user.id,
+    };
+    
+    const { data: log, error } = await (ctx.supabase as any)
       .from('nutrition_logs')
-      .insert({
-        ...input,
-        user_id: ctx.user.id,
-      })
+      .insert(insertData)
       .select()
       .single();
 
