@@ -21,6 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth';
 import { trpc } from '@/lib/trpc';
+import { router } from 'expo-router';
 
 interface StatCard {
   id: string;
@@ -102,7 +103,7 @@ export default function HomeScreen() {
       subtitle: 'トレーニングを追加',
       icon: <Activity size={24} color="#FF6B9D" />,
       color: '#FFF1F5',
-      onPress: () => console.log('Workout pressed'),
+      onPress: () => router.push('/workout/add'),
     },
     {
       id: 'meal',
@@ -110,15 +111,15 @@ export default function HomeScreen() {
       subtitle: '今日の食事を追加',
       icon: <Plus size={24} color="#10B981" />,
       color: '#F0FDF4',
-      onPress: () => console.log('Meal pressed'),
+      onPress: () => router.push('/meal/add'),
     },
     {
-      id: 'goal',
-      title: '目標を設定',
-      subtitle: '新しい目標を作成',
+      id: 'history',
+      title: '履歴を確認',
+      subtitle: 'ワークアウト履歴を見る',
       icon: <Target size={24} color="#3B82F6" />,
       color: '#EFF6FF',
-      onPress: () => console.log('Goal pressed'),
+      onPress: () => router.push('/workout/history'),
     },
   ];
 

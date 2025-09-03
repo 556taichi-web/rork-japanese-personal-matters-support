@@ -48,7 +48,7 @@ export const createWorkoutProcedure = protectedProcedure
     if (exercises && exercises.length > 0) {
       const workoutItems: Database['public']['Tables']['workout_items']['Insert'][] = exercises.map(exercise => ({
         ...exercise,
-        workout_id: workout?.id,
+        workout_id: workout!.id,
       }));
 
       const { error: itemsError } = await (ctx.supabase as any)
@@ -68,7 +68,7 @@ export const createWorkoutProcedure = protectedProcedure
         *,
         workout_items(*)
       `)
-      .eq('id', workout?.id)
+      .eq('id', workout!.id)
       .single();
 
     if (fetchError) {
