@@ -1,0 +1,464 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  SafeAreaView,
+} from 'react-native';
+import { router } from 'expo-router';
+import { ArrowLeft, Camera, PenTool, Save } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { trpc } from '@/lib/trpc';
+
+type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export default function MealRecordScreen() {
+  const [recordMethod, setRecordMethod] = useState<'photo' | 'manual' | null>(null);
+  const [selectedMealType, setSelectedMealType] = useState<MealType>('breakfast');
+  const [foodName, setFoodName] = useState<string>('');
+  const [quantity, setQuantity] = useState<string>('1');
+  const [unit, setUnit] = useState<string>('人前');
+  const [calories, setCalories] = useState<string>('');
+  const [imageUri, setImageUri] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const createNutritionLogMutation = trpc.nutrition.create.useMutation();
+
+  const mealTypes: { key: MealType; label: string; color: string }[] = [
+    { key: 'breakfast', label: '朝食', color: '#FED7AA' },
+    { key: 'lunch', label: '昼食', color: '#FBBF24' },
+    { key: 'dinner', label: '夕食', color: '#F87171' },
+    { key: 'snack', label: '間食', color: '#A78BFA' },
+  ];
+
+  const commonUnits = ['人前', 'g', 'ml', '個', '切れ', '杯'];
+
+  const handleMethodSelect = (method: 'photo' | 'manual') => {
+    setRecordMethod(method);
+    if (method === 'photo') {
+      showImageOptions();
+    }
+  };
+
+  const showImageOptions = () => {
+    Alert.alert(
+      '食事の写真を記録',
+      '写真を撮影するか、ギャラリーから選択してください。',
+      [
+        { text: 'キャンセル', style: 'cancel', onPress: () => setRecordMethod(null) },
+        { text: 'ギャラリーから選択', onPress: () => pickImage() },
+        { text: '写真を撮影', onPress: () => takePhoto() },
+      ]
+    );
+  };
+
+  const pickImage = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('権限が必要です', 'フォトライブラリへのアクセス権限が必要です。');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setImageUri(result.assets[0].uri);
+        setFoodName('写真から自動認識された食事');
+        Alert.alert('写真を選択しました', 'AIが食事内容を分析しています...');
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('エラー', '画像の選択に失敗しました。');
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('権限が必要です', 'カメラへのアクセス権限が必要です。');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setImageUri(result.assets[0].uri);
+        setFoodName('写真から自動認識された食事');
+        Alert.alert('写真を撮影しました', 'AIが食事内容を分析しています...');
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('エラー', '写真の撮影に失敗しました。');
+    }
+  };
+
+  const saveMealRecord = async () => {
+    if (!foodName.trim()) {
+      Alert.alert('エラー', '食事内容を入力してください。');
+      return;
+    }
+
+    const quantityNum = parseFloat(quantity);
+    if (isNaN(quantityNum) || quantityNum <= 0) {
+      Alert.alert('エラー', '正しい数量を入力してください。');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const mealData = {
+        date: new Date().toISOString().split('T')[0],
+        meal_type: selectedMealType,
+        food_name: foodName.trim(),
+        quantity: quantityNum,
+        unit: unit,
+        calories: calories ? parseFloat(calories) : undefined,
+        image_url: imageUri || undefined,
+      };
+
+      await createNutritionLogMutation.mutateAsync(mealData);
+      Alert.alert('保存完了', '食事記録が保存されました。', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
+    } catch (error) {
+      console.error('Error saving meal record:', error);
+      Alert.alert('エラー', '食事記録の保存に失敗しました。');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderMethodSelection = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>記録方法を選択</Text>
+      <View style={styles.methodContainer}>
+        <TouchableOpacity
+          style={styles.methodCard}
+          onPress={() => handleMethodSelect('photo')}
+        >
+          <View style={styles.methodIcon}>
+            <Camera size={48} color="#4ECDC4" />
+          </View>
+          <Text style={styles.methodTitle}>写真で記録</Text>
+          <Text style={styles.methodDescription}>
+            食事の写真を撮影してAIが自動で分析
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.methodCard}
+          onPress={() => handleMethodSelect('manual')}
+        >
+          <View style={styles.methodIcon}>
+            <PenTool size={48} color="#FF6B9D" />
+          </View>
+          <Text style={styles.methodTitle}>手動で記録</Text>
+          <Text style={styles.methodDescription}>
+            食事内容とカロリーを手動で入力
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderMealTypeSelection = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>食事の種類</Text>
+      <View style={styles.mealTypeContainer}>
+        {mealTypes.map((mealType) => (
+          <TouchableOpacity
+            key={mealType.key}
+            style={[
+              styles.mealTypeCard,
+              { backgroundColor: mealType.color },
+              selectedMealType === mealType.key && styles.selectedMealType,
+            ]}
+            onPress={() => setSelectedMealType(mealType.key)}
+          >
+            <Text style={styles.mealTypeText}>{mealType.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
+  const renderFoodInput = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>食事内容</Text>
+      
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>食事名</Text>
+        <TextInput
+          style={styles.textInput}
+          value={foodName}
+          onChangeText={setFoodName}
+          placeholder="例: ご飯、味噌汁、焼き魚"
+          multiline
+          numberOfLines={2}
+        />
+      </View>
+
+      <View style={styles.row}>
+        <View style={[styles.inputGroup, { flex: 2 }]}>
+          <Text style={styles.inputLabel}>数量</Text>
+          <TextInput
+            style={styles.textInput}
+            value={quantity}
+            onChangeText={setQuantity}
+            keyboardType="numeric"
+            placeholder="1"
+          />
+        </View>
+
+        <View style={[styles.inputGroup, { flex: 3 }]}>
+          <Text style={styles.inputLabel}>単位</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.unitContainer}>
+              {commonUnits.map((unitOption) => (
+                <TouchableOpacity
+                  key={unitOption}
+                  style={[
+                    styles.unitChip,
+                    unit === unitOption && styles.selectedUnit,
+                  ]}
+                  onPress={() => setUnit(unitOption)}
+                >
+                  <Text
+                    style={[
+                      styles.unitText,
+                      unit === unitOption && styles.selectedUnitText,
+                    ]}
+                  >
+                    {unitOption}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>カロリー（任意）</Text>
+        <TextInput
+          style={styles.textInput}
+          value={calories}
+          onChangeText={setCalories}
+          keyboardType="numeric"
+          placeholder="例: 500"
+        />
+      </View>
+    </View>
+  );
+
+  const renderSaveButton = () => (
+    <TouchableOpacity
+      style={styles.saveButton}
+      onPress={saveMealRecord}
+      disabled={isLoading}
+    >
+      <Save size={20} color="white" />
+      <Text style={styles.saveButtonText}>
+        {isLoading ? '保存中...' : '食事記録を保存'}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <ArrowLeft size={24} color="#2D3748" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>食事記録</Text>
+        <View style={styles.placeholder} />
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {!recordMethod && renderMethodSelection()}
+        {recordMethod && (
+          <>
+            {renderMealTypeSelection()}
+            {renderFoodInput()}
+            {renderSaveButton()}
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2D3748',
+  },
+  placeholder: {
+    width: 40,
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2D3748',
+    marginBottom: 16,
+  },
+  methodContainer: {
+    gap: 16,
+  },
+  methodCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  methodIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F7FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  methodTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2D3748',
+    marginBottom: 8,
+  },
+  methodDescription: {
+    fontSize: 14,
+    color: '#718096',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  mealTypeContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  mealTypeCard: {
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedMealType: {
+    borderColor: '#2D3748',
+  },
+  mealTypeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2D3748',
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#4A5568',
+    marginBottom: 8,
+  },
+  textInput: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    textAlignVertical: 'top',
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  unitContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  unitChip: {
+    backgroundColor: '#F7FAFC',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  selectedUnit: {
+    backgroundColor: '#FF6B9D',
+    borderColor: '#FF6B9D',
+  },
+  unitText: {
+    fontSize: 14,
+    color: '#4A5568',
+  },
+  selectedUnitText: {
+    color: 'white',
+  },
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#10B981',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 24,
+    gap: 8,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },
+});
