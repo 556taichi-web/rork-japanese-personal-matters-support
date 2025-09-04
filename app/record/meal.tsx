@@ -17,7 +17,7 @@ import { trpc } from '@/lib/trpc';
 type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 export default function MealRecordScreen() {
-  const [recordMethod, setRecordMethod] = useState<'photo' | 'manual' | null>(null);
+  const [recordMethod, setRecordMethod] = useState<'photo' | 'manual' | null>('manual');
   const [selectedMealType, setSelectedMealType] = useState<MealType>('breakfast');
   const [foodName, setFoodName] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
@@ -150,19 +150,6 @@ export default function MealRecordScreen() {
       <View style={styles.methodContainer}>
         <TouchableOpacity
           style={styles.methodCard}
-          onPress={() => handleMethodSelect('photo')}
-        >
-          <View style={styles.methodIcon}>
-            <Camera size={48} color="#4ECDC4" />
-          </View>
-          <Text style={styles.methodTitle}>写真で記録</Text>
-          <Text style={styles.methodDescription}>
-            食事の写真を撮影してAIが自動で分析
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.methodCard}
           onPress={() => handleMethodSelect('manual')}
         >
           <View style={styles.methodIcon}>
@@ -171,6 +158,19 @@ export default function MealRecordScreen() {
           <Text style={styles.methodTitle}>手動で記録</Text>
           <Text style={styles.methodDescription}>
             食事内容とカロリーを手動で入力
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.methodCard}
+          onPress={() => handleMethodSelect('photo')}
+        >
+          <View style={styles.methodIcon}>
+            <Camera size={48} color="#4ECDC4" />
+          </View>
+          <Text style={styles.methodTitle}>写真で記録</Text>
+          <Text style={styles.methodDescription}>
+            食事の写真を撮影してAIが自動で分析
           </Text>
         </TouchableOpacity>
       </View>
@@ -291,9 +291,39 @@ export default function MealRecordScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {!recordMethod && renderMethodSelection()}
+        {recordMethod === null && renderMethodSelection()}
         {recordMethod && (
           <>
+            <View style={styles.methodSwitcher}>
+              <TouchableOpacity
+                style={[
+                  styles.methodTab,
+                  recordMethod === 'manual' && styles.activeMethodTab,
+                ]}
+                onPress={() => setRecordMethod('manual')}
+              >
+                <PenTool size={16} color={recordMethod === 'manual' ? 'white' : '#718096'} />
+                <Text style={[
+                  styles.methodTabText,
+                  recordMethod === 'manual' && styles.activeMethodTabText,
+                ]}>手動入力</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.methodTab,
+                  recordMethod === 'photo' && styles.activeMethodTab,
+                ]}
+                onPress={() => handleMethodSelect('photo')}
+              >
+                <Camera size={16} color={recordMethod === 'photo' ? 'white' : '#718096'} />
+                <Text style={[
+                  styles.methodTabText,
+                  recordMethod === 'photo' && styles.activeMethodTabText,
+                ]}>写真撮影</Text>
+              </TouchableOpacity>
+            </View>
+            
             {renderMealTypeSelection()}
             {renderFoodInput()}
             {renderSaveButton()}
@@ -459,6 +489,34 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: 'white',
+  },
+  methodSwitcher: {
+    flexDirection: 'row',
+    backgroundColor: '#F7FAFC',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 24,
+  },
+  methodTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 8,
+  },
+  activeMethodTab: {
+    backgroundColor: '#FF6B9D',
+  },
+  methodTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#718096',
+  },
+  activeMethodTabText: {
     color: 'white',
   },
 });
