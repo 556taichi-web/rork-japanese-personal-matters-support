@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, Camera, MessageCircle, User } from "lucide-react-native";
+import { BarChart3, PlusCircle, MessageCircle, User } from "lucide-react-native";
 import React from "react";
 
 import Colors from "@/constants/colors";
@@ -33,15 +33,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "ホーム",
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          title: "ダッシュボード",
+          tabBarIcon: ({ color, size }) => <BarChart3 size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="camera"
         options={{
           title: "記録",
-          tabBarIcon: ({ color, size }) => <Camera size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <PlusCircle size={size} color={color} />,
         }}
       />
       <Tabs.Screen
