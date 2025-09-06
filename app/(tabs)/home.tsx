@@ -15,7 +15,10 @@ import {
   Plus,
   Award,
   Clock,
-  Zap
+  Zap,
+  Utensils,
+  Dumbbell,
+  ChevronRight
 } from 'lucide-react-native';
 
 import { useAuth } from '@/lib/auth';
@@ -54,6 +57,18 @@ export default function HomeScreen() {
   // Fetch today's nutrition logs
   const todayNutritionQuery = trpc.nutrition.logs.useQuery({
     date: new Date().toISOString().split('T')[0],
+  });
+  
+  // Fetch recent nutrition logs (last 7 days)
+  const recentNutritionQuery = trpc.nutrition.logs.useQuery({
+    startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    limit: 5,
+  });
+  
+  // Fetch recent workouts (last 5)
+  const recentWorkoutsQuery = trpc.workouts.list.useQuery({
+    limit: 5,
   });
 
   const stats: StatCard[] = useMemo(() => {
@@ -144,7 +159,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        {(profileQuery.isLoading || workoutsQuery.isLoading || todayNutritionQuery.isLoading) ? (
+        {(profileQuery.isLoading || workoutsQuery.isLoading || todayNutritionQuery.isLoading || recentNutritionQuery.isLoading || recentWorkoutsQuery.isLoading) ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#FF6B9D" />
             <Text style={styles.loadingText}>データを読み込み中...</Text>
@@ -187,6 +202,101 @@ export default function HomeScreen() {
                   </View>
                 </TouchableOpacity>
               ))}
+            </View>
+
+            {/* Recent Workouts Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>最近のトレーニング</Text>
+                <TouchableOpacity 
+                  onPress={() => router.push('/workout/history')}
+                  style={styles.sectionAction}
+                >
+                  <Text style={styles.sectionActionText}>すべて見る</Text>
+                  <ChevronRight size={16} color="#FF6B9D" />
+                </TouchableOpacity>
+              </View>
+              {recentWorkoutsQuery.data && recentWorkoutsQuery.data.length > 0 ? (
+                <View style={styles.recordsList}>
+                  {recentWorkoutsQuery.data.slice(0, 3).map((workout: any, index: number) => (
+                    <View key={workout.id} style={styles.recordCard}>
+                      <View style={[styles.recordIcon, { backgroundColor: '#EFF6FF' }]}>
+                        <Dumbbell size={20} color="#3B82F6" />
+                      </View>
+                      <View style={styles.recordContent}>
+                        <Text style={styles.recordTitle}>{workout.body_part || 'トレーニング'}</Text>
+                        <Text style={styles.recordSubtitle}>
+                          {workout.workout_items?.length || 0}種目 • {new Date(workout.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                        </Text>
+                        <Text style={styles.recordDetail}>
+                          {workout.duration_minutes ? `${workout.duration_minutes}分` : ''}
+                          {workout.notes ? ` • ${workout.notes.slice(0, 30)}${workout.notes.length > 30 ? '...' : ''}` : ''}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Dumbbell size={32} color="#9CA3AF" />
+                  <Text style={styles.emptyStateText}>まだトレーニング記録がありません</Text>
+                  <TouchableOpacity 
+                    style={styles.emptyStateButton}
+                    onPress={() => router.push('/workout/add')}
+                  >
+                    <Text style={styles.emptyStateButtonText}>最初の記録を追加</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            {/* Recent Meals Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>最近の食事記録</Text>
+                <TouchableOpacity 
+                  onPress={() => router.push('/meal/add')}
+                  style={styles.sectionAction}
+                >
+                  <Text style={styles.sectionActionText}>記録する</Text>
+                  <ChevronRight size={16} color="#FF6B9D" />
+                </TouchableOpacity>
+              </View>
+              {recentNutritionQuery.data && recentNutritionQuery.data.length > 0 ? (
+                <View style={styles.recordsList}>
+                  {recentNutritionQuery.data.slice(0, 3).map((meal: any, index: number) => (
+                    <View key={meal.id} style={styles.recordCard}>
+                      <View style={[styles.recordIcon, { backgroundColor: '#F0FDF4' }]}>
+                        <Utensils size={20} color="#10B981" />
+                      </View>
+                      <View style={styles.recordContent}>
+                        <Text style={styles.recordTitle}>{meal.food_name || '食事記録'}</Text>
+                        <Text style={styles.recordSubtitle}>
+                          {meal.meal_type === 'breakfast' ? '朝食' : 
+                           meal.meal_type === 'lunch' ? '昼食' : 
+                           meal.meal_type === 'dinner' ? '夕食' : 'おやつ'} • 
+                          {new Date(meal.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                        </Text>
+                        <Text style={styles.recordDetail}>
+                          {meal.calories ? `${meal.calories}kcal` : ''}
+                          {meal.quantity && meal.unit ? ` • ${meal.quantity}${meal.unit}` : ''}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Utensils size={32} color="#9CA3AF" />
+                  <Text style={styles.emptyStateText}>まだ食事記録がありません</Text>
+                  <TouchableOpacity 
+                    style={styles.emptyStateButton}
+                    onPress={() => router.push('/meal/add')}
+                  >
+                    <Text style={styles.emptyStateButtonText}>最初の記録を追加</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
 
             <View style={styles.section}>
@@ -374,5 +484,92 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#6B7280',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sectionActionText: {
+    fontSize: 14,
+    color: '#FF6B9D',
+    fontWeight: '500',
+    marginRight: 4,
+  },
+  recordsList: {
+    gap: 12,
+  },
+  recordCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  recordIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  recordContent: {
+    flex: 1,
+  },
+  recordTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  recordSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  recordDetail: {
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 12,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  emptyStateButton: {
+    backgroundColor: '#FF6B9D',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  emptyStateButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
