@@ -42,18 +42,28 @@ export const trpcClient = trpc.createClient({
       },
       fetch: async (url, options) => {
         try {
+          console.log('tRPC request to:', url);
           const response = await fetch(url, options);
+          
+          if (!response.ok) {
+            console.error('tRPC response not ok:', response.status, response.statusText);
+          }
           
           // Check if response is HTML (error page)
           const contentType = response.headers.get('content-type');
           if (contentType && contentType.includes('text/html')) {
             console.error('Received HTML response instead of JSON from:', url);
+            const text = await response.text();
+            console.error('HTML response body:', text.substring(0, 500));
             throw new Error('Server returned HTML instead of JSON. Check if the backend server is running.');
           }
           
           return response;
         } catch (error) {
           console.error('tRPC fetch error:', error);
+          if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+            throw new Error('Cannot connect to backend server. Please check if the server is running at ' + getBaseUrl());
+          }
           throw error;
         }
       },

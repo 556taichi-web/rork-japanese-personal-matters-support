@@ -48,15 +48,24 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   
+  // Test backend connection first
+  const connectionTest = trpc.example.hi.useQuery({ name: 'Test' });
+  
   // Fetch user profile
-  const profileQuery = trpc.profile.get.useQuery();
+  const profileQuery = trpc.profile.get.useQuery(undefined, {
+    enabled: !connectionTest.isError,
+  });
   
   // Fetch recent workouts for stats
-  const workoutsQuery = trpc.workouts.list.useQuery({});
+  const workoutsQuery = trpc.workouts.list.useQuery({}, {
+    enabled: !connectionTest.isError,
+  });
   
   // Fetch today's nutrition logs
   const todayNutritionQuery = trpc.nutrition.logs.useQuery({
     date: new Date().toISOString().split('T')[0],
+  }, {
+    enabled: !connectionTest.isError,
   });
   
   // Fetch recent nutrition logs (last 7 days)
@@ -64,11 +73,15 @@ export default function HomeScreen() {
     startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     limit: 5,
+  }, {
+    enabled: !connectionTest.isError,
   });
   
   // Fetch recent workouts (last 5)
   const recentWorkoutsQuery = trpc.workouts.list.useQuery({
     limit: 5,
+  }, {
+    enabled: !connectionTest.isError,
   });
 
   const stats: StatCard[] = useMemo(() => {
@@ -159,10 +172,28 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        {(profileQuery.isLoading || workoutsQuery.isLoading || todayNutritionQuery.isLoading || recentNutritionQuery.isLoading || recentWorkoutsQuery.isLoading) ? (
+        {connectionTest.isError ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorTitle}>バックエンドサーバーに接続できません</Text>
+            <Text style={styles.errorText}>
+              {connectionTest.error?.message || 'サーバーが起動していない可能性があります'}
+            </Text>
+            <TouchableOpacity 
+              style={styles.retryButton}
+              onPress={() => connectionTest.refetch()}
+            >
+              <Text style={styles.retryButtonText}>再試行</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (profileQuery.isLoading || workoutsQuery.isLoading || todayNutritionQuery.isLoading || recentNutritionQuery.isLoading || recentWorkoutsQuery.isLoading) ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#FF6B9D" />
             <Text style={styles.loadingText}>データを読み込み中...</Text>
+            {connectionTest.data && (
+              <Text style={styles.connectionStatus}>
+                バックエンド接続: {connectionTest.data.status}
+              </Text>
+            )}
           </View>
         ) : (
           <>
@@ -571,5 +602,43 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: '500',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#EF4444',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryButton: {
+    backgroundColor: '#FF6B9D',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  connectionStatus: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#10B981',
+    textAlign: 'center',
   },
 });
