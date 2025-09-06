@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { ArrowLeft, Camera, PenTool, Save } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { trpc } from '@/lib/trpc';
+import { supabase } from '@/lib/supabase';
 
 type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
@@ -132,13 +133,66 @@ export default function MealRecordScreen() {
         image_url: imageUri || undefined,
       };
 
-      await createNutritionLogMutation.mutateAsync(mealData);
-      Alert.alert('保存完了', '食事記録が保存されました。', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
-    } catch (error) {
+      console.log('Saving meal data:', mealData);
+      
+      // Try to save via tRPC first
+      try {
+        const result = await createNutritionLogMutation.mutateAsync(mealData);
+        console.log('Meal saved successfully via tRPC:', result);
+        
+        Alert.alert('保存完了', '食事記録が保存されました。', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+        return;
+      } catch (trpcError: any) {
+        console.log('tRPC failed, trying direct Supabase:', trpcError);
+        
+        // Fallback to direct Supabase insertion
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('ログインが必要です。');
+        }
+        
+        const { data, error } = await (supabase as any)
+          .from('nutrition_logs')
+          .insert({
+            user_id: user.id,
+            date: mealData.date,
+            meal_type: mealData.meal_type,
+            food_name: mealData.food_name,
+            quantity: mealData.quantity,
+            unit: mealData.unit,
+            calories: mealData.calories || null,
+            image_url: mealData.image_url || null,
+          })
+          .select()
+          .single();
+        
+        if (error) {
+          throw new Error(`データベースエラー: ${error.message}`);
+        }
+        
+        console.log('Meal saved successfully via direct Supabase:', data);
+        Alert.alert('保存完了', '食事記録が保存されました。', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      }
+    } catch (error: any) {
       console.error('Error saving meal record:', error);
-      Alert.alert('エラー', '食事記録の保存に失敗しました。');
+      
+      let errorMessage = '食事記録の保存に失敗しました。';
+      
+      if (error?.message) {
+        if (error.message.includes('Server returned HTML')) {
+          errorMessage = 'サーバーに接続できません。直接データベースに保存を試みます。';
+        } else if (error.message.includes('UNAUTHORIZED') || error.message.includes('ログインが必要')) {
+          errorMessage = 'ログインが必要です。再度ログインしてください。';
+        } else {
+          errorMessage = `エラー: ${error.message}`;
+        }
+      }
+      
+      Alert.alert('エラー', errorMessage);
     } finally {
       setIsLoading(false);
     }

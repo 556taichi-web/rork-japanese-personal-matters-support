@@ -22,21 +22,40 @@ export const createNutritionLogProcedure = protectedProcedure
   .mutation(async ({ ctx, input }) => {
     console.log('Creating nutrition log for user:', ctx.user.id, input);
     
-    const insertData: Database['public']['Tables']['nutrition_logs']['Insert'] = {
-      ...input,
-      user_id: ctx.user.id,
-    };
-    
-    const { data: log, error } = await (ctx.supabase as any)
-      .from('nutrition_logs')
-      .insert(insertData)
-      .select()
-      .single();
+    try {
+      const insertData: Database['public']['Tables']['nutrition_logs']['Insert'] = {
+        user_id: ctx.user.id,
+        date: input.date,
+        meal_type: input.meal_type,
+        food_name: input.food_name,
+        quantity: input.quantity,
+        unit: input.unit,
+        calories: input.calories || null,
+        protein_g: input.protein_g || null,
+        carbs_g: input.carbs_g || null,
+        fat_g: input.fat_g || null,
+        fiber_g: input.fiber_g || null,
+        image_url: input.image_url || null,
+        ai_analysis: input.ai_analysis || null,
+      };
+      
+      console.log('Inserting data:', insertData);
+      
+      const { data: log, error } = await (ctx.supabase as any)
+        .from('nutrition_logs')
+        .insert(insertData)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating nutrition log:', error);
-      throw new Error('Failed to create nutrition log');
+      if (error) {
+        console.error('Supabase error creating nutrition log:', error);
+        throw new Error(`Failed to create nutrition log: ${error.message}`);
+      }
+
+      console.log('Successfully created nutrition log:', log);
+      return log;
+    } catch (error) {
+      console.error('Error in createNutritionLogProcedure:', error);
+      throw error;
     }
-
-    return log;
   });
