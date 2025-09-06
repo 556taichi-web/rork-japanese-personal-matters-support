@@ -11,17 +11,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { 
   Activity, 
   TrendingUp, 
-  Calendar, 
   Target,
   Plus,
   Award,
   Clock,
   Zap
 } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { useAuth } from '@/lib/auth';
 import { trpc } from '@/lib/trpc';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface StatCard {
   id: string;
@@ -43,6 +43,7 @@ interface QuickAction {
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   
   // Fetch user profile
   const profileQuery = trpc.profile.get.useQuery();
@@ -80,7 +81,7 @@ export default function HomeScreen() {
       {
         id: 'calories',
         title: '今日のカロリー',
-        value: todayCalories.toLocaleString(),
+        value: `${todayCalories}kcal`,
         change: '-200kcal', // TODO: Calculate from target
         icon: <Zap size={20} color="white" />,
         color: '#F59E0B',
@@ -124,15 +125,15 @@ export default function HomeScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <LinearGradient
         colors={['#FF6B9D', '#FF8A80']}
-        style={styles.header}
+        style={[styles.header, { paddingTop: styles.header.paddingVertical + insets.top }]}
       >
         <View style={styles.greeting}>
           <Text style={styles.greetingText}>おはようございます</Text>
           <Text style={styles.userName}>
-            {(profileQuery.data as any)?.full_name || user?.email?.split('@')[0] || 'ユーザー'}さん
+            {(profileQuery.data as any)?.full_name || user?.email?.split('@')?.[0] || 'ユーザー'}さん
           </Text>
         </View>
         <Text style={styles.motivationText}>今日も一緒に頑張りましょう！</Text>
@@ -205,7 +206,7 @@ export default function HomeScreen() {
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
