@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://eybllyvdrafsgzpnelbu.supabase.co';
-const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5YmxseXZkcmFmc2d6cG5lbGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMTc2NTcsImV4cCI6MjA3MTg5MzY1N30.SDvf43hd2PBxOGz7OP_pXhTAVVMliwlx1DP4n6vi2P4';
+const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_Hkn7xo1FAWD-jTrseIMlsA_dUgt_Np1';
 
 console.log('Environment check:', {
   hasExpoConfig: !!Constants.expoConfig?.extra,
