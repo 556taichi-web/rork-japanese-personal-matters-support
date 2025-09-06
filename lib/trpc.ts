@@ -16,9 +16,9 @@ const getBaseUrl = () => {
     return window.location.origin;
   }
 
-  // Fallback to localhost for development
+  // Fallback to localhost backend server for development
   if (__DEV__) {
-    return 'http://localhost:8081';
+    return 'http://localhost:3001';
   }
 
   throw new Error(

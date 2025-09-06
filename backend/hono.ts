@@ -8,7 +8,10 @@ import { createContext } from "./trpc/create-context";
 const app = new Hono();
 
 // Enable CORS for all routes
-app.use("*", cors());
+app.use("*", cors({
+  origin: ['http://localhost:8081', 'https://*.rork.com'],
+  credentials: true,
+}));
 
 // Mount tRPC router at /trpc
 app.use(
@@ -24,5 +27,7 @@ app.use(
 app.get("/", (c) => {
   return c.json({ status: "ok", message: "API is running" });
 });
+
+
 
 export default app;
