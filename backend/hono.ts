@@ -9,8 +9,32 @@ const app = new Hono();
 
 // Enable CORS for all routes
 app.use("*", cors({
-  origin: ['http://localhost:8081', 'https://*.rork.com'],
+  origin: (origin) => {
+    // Allow requests with no origin (mobile apps)
+    if (!origin) return origin;
+    
+    // Allow specific origins
+    const allowedOrigins = [
+      'http://localhost:8081',
+      'http://localhost:3000', 
+      'http://localhost:19006',
+    ];
+    
+    if (allowedOrigins.includes(origin)) return origin;
+    
+    // Allow rork.com domains
+    if (origin.includes('rork.com')) return origin;
+    
+    // Allow any localhost port for development
+    if (/^http:\/\/localhost:\d+$/.test(origin)) return origin;
+    
+    // Allow Expo development URLs
+    if (/^http:\/\/.*\.local:\d+$/.test(origin)) return origin;
+    
+    return null;
+  },
   credentials: true,
+  allowHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Mount tRPC router at /trpc
