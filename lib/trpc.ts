@@ -11,6 +11,11 @@ const getBaseUrl = () => {
     return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
   }
 
+  // For Rork platform, use the current origin
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+
   // Fallback to localhost for development
   if (__DEV__) {
     return 'http://localhost:8081';
