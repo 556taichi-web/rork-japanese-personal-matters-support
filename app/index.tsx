@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuth } from '@/lib/auth';
-import { checkBackendHealth } from '@/lib/trpc';
+import { checkBackendHealth, quickHealthCheck } from '@/lib/trpc';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RefreshCw, AlertCircle } from 'lucide-react-native';
 
@@ -10,31 +10,58 @@ export default function IndexPage() {
   const { user, isLoading: authLoading } = useAuth();
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const [isRetrying, setIsRetrying] = useState(false);
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
+  const [showOfflineMode, setShowOfflineMode] = useState(false);
   const insets = useSafeAreaInsets();
 
-  const checkConnection = async () => {
+  const checkConnection = async (useQuickCheck: boolean = false) => {
     console.log('Checking backend connection...');
     setBackendStatus('checking');
     
     try {
-      const isHealthy = await checkBackendHealth();
+      const isHealthy = useQuickCheck 
+        ? await quickHealthCheck()
+        : await checkBackendHealth();
+      
       setBackendStatus(isHealthy ? 'connected' : 'disconnected');
       
       if (isHealthy) {
         console.log('Backend connection successful');
+        setConnectionAttempts(0);
+        setShowOfflineMode(false);
       } else {
         console.log('Backend connection failed');
+        setConnectionAttempts(prev => prev + 1);
+        
+        // Show offline mode after 3 failed attempts
+        if (connectionAttempts >= 2) {
+          setShowOfflineMode(true);
+        }
       }
     } catch (error) {
       console.error('Backend health check error:', error);
       setBackendStatus('disconnected');
+      setConnectionAttempts(prev => prev + 1);
+      
+      if (connectionAttempts >= 2) {
+        setShowOfflineMode(true);
+      }
     }
   };
 
   const retryConnection = async () => {
     setIsRetrying(true);
-    await checkConnection();
+    setShowOfflineMode(false);
+    await checkConnection(false); // Use full health check on retry
     setIsRetrying(false);
+  };
+  
+  const continueOffline = () => {
+    // Allow user to continue without backend connection
+    if (user) {
+      return <Redirect href="/(tabs)/home" />;
+    }
+    return <Redirect href="/auth/login" />;
   };
 
   const showConnectionHelp = () => {
@@ -44,13 +71,19 @@ export default function IndexPage() {
       '1. バックエンドサーバーが起動していることを確認\n' +
       '2. ターミナルで "bun run dev" を実行\n' +
       '3. http://localhost:3001 でサーバーが動作していることを確認\n' +
-      '4. ファイアウォールやセキュリティソフトがブロックしていないか確認',
+      '4. ファイアウォールやセキュリティソフトがブロックしていないか確認\n' +
+      '5. ネットワーク接続を確認\n\n' +
+      'それでも接続できない場合は、オフラインモードで続行できます。',
       [{ text: 'OK' }]
     );
   };
 
   useEffect(() => {
-    checkConnection();
+    // Start with quick check for faster feedback
+    const performInitialCheck = async () => {
+      await checkConnection(true);
+    };
+    performInitialCheck();
   }, []);
 
   // Show loading while checking auth
@@ -86,6 +119,7 @@ export default function IndexPage() {
           <Text style={styles.errorMessage}>
             サーバーが起動していない可能性があります。{"\n"}
             ターミナルで &quot;bun run dev&quot; を実行してください。
+            {connectionAttempts > 0 && `\n\n接続試行回数: ${connectionAttempts}`}
           </Text>
           
           <TouchableOpacity 
@@ -106,6 +140,12 @@ export default function IndexPage() {
           <TouchableOpacity style={styles.helpButton} onPress={showConnectionHelp}>
             <Text style={styles.helpButtonText}>接続ヘルプ</Text>
           </TouchableOpacity>
+          
+          {showOfflineMode && (
+            <TouchableOpacity style={styles.offlineButton} onPress={continueOffline}>
+              <Text style={styles.offlineButtonText}>オフラインで続行</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -187,6 +227,19 @@ const styles = StyleSheet.create({
   helpButtonText: {
     color: '#007AFF',
     fontSize: 16,
+    textAlign: 'center',
+  },
+  offlineButton: {
+    backgroundColor: '#FF9500',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  offlineButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
     textAlign: 'center',
   },
 });

@@ -37,31 +37,80 @@ const getBaseUrl = () => {
   );
 };
 
-// Health check function
-export const checkBackendHealth = async (): Promise<boolean> => {
+// Health check function with retry logic
+export const checkBackendHealth = async (retries: number = 3): Promise<boolean> => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const baseUrl = getBaseUrl();
+      console.log(`Checking backend health at: ${baseUrl}/api (attempt ${attempt}/${retries})`);
+      
+      // Create abort controller with longer timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log(`Health check timeout after 15 seconds (attempt ${attempt})`);
+        controller.abort();
+      }, 15000); // Increased to 15 seconds
+      
+      const response = await fetch(`${baseUrl}/api`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Backend health check successful:', data);
+        return true;
+      } else {
+        console.error(`Backend health check failed (attempt ${attempt}):`, response.status, response.statusText);
+        if (attempt === retries) return false;
+      }
+    } catch (error) {
+      console.error(`Backend health check error (attempt ${attempt}):`, error);
+      
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        console.log(`Request timed out on attempt ${attempt}`);
+      }
+      
+      if (attempt === retries) {
+        return false;
+      }
+      
+      // Wait before retry (exponential backoff)
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      console.log(`Waiting ${delay}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  return false;
+};
+
+// Quick health check without retries for faster feedback
+export const quickHealthCheck = async (): Promise<boolean> => {
   try {
     const baseUrl = getBaseUrl();
-    console.log('Checking backend health at:', `${baseUrl}/api`);
+    console.log('Quick health check at:', `${baseUrl}/api`);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
     
     const response = await fetch(`${baseUrl}/api`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      // Add timeout
-      signal: AbortSignal.timeout(5000),
+      signal: controller.signal,
     });
     
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Backend health check successful:', data);
-      return true;
-    } else {
-      console.error('Backend health check failed:', response.status, response.statusText);
-      return false;
-    }
+    clearTimeout(timeoutId);
+    return response.ok;
   } catch (error) {
-    console.error('Backend health check error:', error);
+    console.log('Quick health check failed:', error);
     return false;
   }
 };
@@ -95,7 +144,10 @@ export const trpcClient = trpc.createClient({
           
           // Add timeout to prevent hanging requests
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          const timeoutId = setTimeout(() => {
+            console.log('tRPC request timeout after 20 seconds');
+            controller.abort();
+          }, 20000); // Increased to 20 second timeout
           
           const response = await fetch(url, {
             ...options,
