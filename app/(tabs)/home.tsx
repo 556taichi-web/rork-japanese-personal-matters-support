@@ -22,7 +22,9 @@ import {
 } from 'lucide-react-native';
 
 import { useAuth } from '@/lib/auth';
-import { trpc } from '@/lib/trpc';
+import { useProfile } from '@/lib/hooks/useProfile';
+import { useWorkouts } from '@/lib/hooks/useWorkouts';
+import { useNutritionLogs } from '@/lib/hooks/useNutrition';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -48,41 +50,26 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   
-  // Test backend connection first
-  const connectionTest = trpc.example.hi.useQuery({ name: 'Test' });
-  
   // Fetch user profile
-  const profileQuery = trpc.profile.get.useQuery(undefined, {
-    enabled: !connectionTest.isError,
-  });
+  const profileQuery = useProfile();
   
   // Fetch recent workouts for stats
-  const workoutsQuery = trpc.workouts.list.useQuery({}, {
-    enabled: !connectionTest.isError,
-  });
+  const workoutsQuery = useWorkouts();
   
   // Fetch today's nutrition logs
-  const todayNutritionQuery = trpc.nutrition.logs.useQuery({
+  const todayNutritionQuery = useNutritionLogs({
     date: new Date().toISOString().split('T')[0],
-  }, {
-    enabled: !connectionTest.isError,
   });
   
   // Fetch recent nutrition logs (last 7 days)
-  const recentNutritionQuery = trpc.nutrition.logs.useQuery({
+  const recentNutritionQuery = useNutritionLogs({
     startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     limit: 5,
-  }, {
-    enabled: !connectionTest.isError,
   });
   
   // Fetch recent workouts (last 5)
-  const recentWorkoutsQuery = trpc.workouts.list.useQuery({
-    limit: 5,
-  }, {
-    enabled: !connectionTest.isError,
-  });
+  const recentWorkoutsQuery = useWorkouts({ limit: 5 });
 
   const stats: StatCard[] = useMemo(() => {
     const todayCalories = todayNutritionQuery.data?.reduce((sum: number, log: any) => sum + (log.calories || 0), 0) || 0;
@@ -172,28 +159,10 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        {connectionTest.isError ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorTitle}>バックエンドサーバーに接続できません</Text>
-            <Text style={styles.errorText}>
-              {connectionTest.error?.message || 'サーバーが起動していない可能性があります'}
-            </Text>
-            <TouchableOpacity 
-              style={styles.retryButton}
-              onPress={() => connectionTest.refetch()}
-            >
-              <Text style={styles.retryButtonText}>再試行</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (profileQuery.isLoading || workoutsQuery.isLoading || todayNutritionQuery.isLoading || recentNutritionQuery.isLoading || recentWorkoutsQuery.isLoading) ? (
+        {(profileQuery.isLoading || workoutsQuery.isLoading || todayNutritionQuery.isLoading || recentNutritionQuery.isLoading || recentWorkoutsQuery.isLoading) ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#FF6B9D" />
             <Text style={styles.loadingText}>データを読み込み中...</Text>
-            {connectionTest.data && (
-              <Text style={styles.connectionStatus}>
-                バックエンド接続: {connectionTest.data.status}
-              </Text>
-            )}
           </View>
         ) : (
           <>
@@ -255,13 +224,13 @@ export default function HomeScreen() {
                         <Dumbbell size={20} color="#3B82F6" />
                       </View>
                       <View style={styles.recordContent}>
-                        <Text style={styles.recordTitle}>{workout.body_part || 'トレーニング'}</Text>
+                        <Text style={styles.recordTitle}>{workout.title || 'トレーニング'}</Text>
                         <Text style={styles.recordSubtitle}>
                           {workout.workout_items?.length || 0}種目 • {new Date(workout.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
                         </Text>
                         <Text style={styles.recordDetail}>
                           {workout.duration_minutes ? `${workout.duration_minutes}分` : ''}
-                          {workout.notes ? ` • ${workout.notes.slice(0, 30)}${workout.notes.length > 30 ? '...' : ''}` : ''}
+                          {workout.description ? ` • ${workout.description.slice(0, 30)}${workout.description.length > 30 ? '...' : ''}` : ''}
                         </Text>
                       </View>
                     </View>
