@@ -13,7 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Edit3, Save, LogOut, Settings } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
-import { trpc } from '@/lib/trpc';
+import { useProfile } from '@/lib/hooks/useProfile';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -26,10 +28,33 @@ export default function ProfileScreen() {
   });
 
   // Fetch profile data
-  const profileQuery = trpc.profile.get.useQuery();
-  const updateProfileMutation = trpc.profile.update.useMutation({
+  const profileQuery = useProfile();
+  const queryClient = useQueryClient();
+  
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: {
+      full_name?: string;
+      age?: number;
+      height_cm?: number;
+      weight_kg?: number;
+    }) => {
+      if (!user?.id) throw new Error('User not authenticated');
+      
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          email: user.email!,
+          full_name: data.full_name || null,
+          age: data.age || null,
+          height_cm: data.height_cm || null,
+          weight_kg: data.weight_kg || null,
+        } as any);
+      
+      if (error) throw error;
+    },
     onSuccess: () => {
-      profileQuery.refetch();
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       setIsEditing(false);
       Alert.alert('成功', 'プロフィールを更新しました');
     },

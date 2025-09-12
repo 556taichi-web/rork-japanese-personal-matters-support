@@ -16,10 +16,10 @@ import {
   Dumbbell
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { trpc } from '@/lib/trpc';
+import { useWorkouts } from '@/lib/hooks/useWorkouts';
 
 export default function WorkoutHistoryScreen() {
-  const workoutsQuery = trpc.workouts.list.useQuery({});
+  const workoutsQuery = useWorkouts();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

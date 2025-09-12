@@ -20,7 +20,7 @@ import {
   Moon,
   Apple
 } from 'lucide-react-native';
-import { trpc } from '@/lib/trpc';
+import { useCreateNutritionLog } from '@/lib/hooks/useNutrition';
 
 type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
@@ -74,17 +74,7 @@ export default function AddMealScreen() {
   ]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const createNutritionLogMutation = trpc.nutrition.create.useMutation({
-    onSuccess: () => {
-      Alert.alert('成功', '食事記録が保存されました', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
-    },
-    onError: (error) => {
-      Alert.alert('エラー', '食事記録の保存に失敗しました');
-      console.error('Nutrition log creation error:', error);
-    }
-  });
+  const createNutritionLogMutation = useCreateNutritionLog();
 
   const addMealEntry = (mealType: MealType) => {
     const newEntry: MealEntry = {
@@ -160,8 +150,12 @@ export default function AddMealScreen() {
           calories: entry.calories || 0
         });
       }
+      Alert.alert('成功', '食事記録が保存されました', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
     } catch (error) {
       console.error('Save meals error:', error);
+      Alert.alert('エラー', '食事記録の保存に失敗しました');
     } finally {
       setIsLoading(false);
     }

@@ -20,7 +20,7 @@ import {
   Dumbbell
 } from 'lucide-react-native';
 import { EXERCISE_CATEGORIES, getExercisesByCategory, Exercise } from '@/constants/exercises';
-import { trpc } from '@/lib/trpc';
+import { useCreateWorkout } from '@/lib/hooks/useWorkouts';
 
 interface WorkoutSet {
   id: string;
@@ -42,17 +42,7 @@ export default function AddWorkoutScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const createWorkoutMutation = trpc.workouts.create.useMutation({
-    onSuccess: () => {
-      Alert.alert('成功', 'ワークアウトが保存されました', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
-    },
-    onError: (error) => {
-      Alert.alert('エラー', 'ワークアウトの保存に失敗しました');
-      console.error('Workout creation error:', error);
-    }
-  });
+  const createWorkoutMutation = useCreateWorkout();
 
   const addExercise = (exercise: Exercise) => {
     const newExercise: WorkoutExercise = {
@@ -124,17 +114,23 @@ export default function AddWorkoutScreen() {
       sets: workoutExercise.sets.length,
       reps: Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.reps, 0) / workoutExercise.sets.length),
       weight_kg: Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.weight_kg, 0) / workoutExercise.sets.length),
-      notes: workoutExercise.notes
+      duration_seconds: null,
+      rest_seconds: null,
+      notes: workoutExercise.notes || null
     }));
 
     try {
       await createWorkoutMutation.mutateAsync({
         title: workoutTitle,
         date: new Date().toISOString().split('T')[0],
-        exercises
+        workout_items: exercises
       });
+      Alert.alert('成功', 'ワークアウトが保存されました', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
     } catch (error) {
       console.error('Save workout error:', error);
+      Alert.alert('エラー', 'ワークアウトの保存に失敗しました');
     } finally {
       setIsLoading(false);
     }

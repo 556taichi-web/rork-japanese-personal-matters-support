@@ -12,7 +12,7 @@ import {
 import { router } from 'expo-router';
 import { ArrowLeft, Plus, Minus, Save } from 'lucide-react-native';
 import { EXERCISE_CATEGORIES, getExercisesByCategory, Exercise } from '@/constants/exercises';
-import { trpc } from '@/lib/trpc';
+import { useCreateWorkout } from '@/lib/hooks/useWorkouts';
 
 interface WorkoutSet {
   reps: number;
@@ -33,7 +33,7 @@ export default function WorkoutRecordScreen() {
   const [notes, setNotes] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const createWorkoutMutation = trpc.workouts.create.useMutation();
+  const createWorkoutMutation = useCreateWorkout();
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
@@ -98,12 +98,14 @@ export default function WorkoutRecordScreen() {
         description: `${workoutExercises.length}種目のトレーニング`,
         date: new Date().toISOString().split('T')[0],
         duration_minutes: 60,
-        exercises: workoutExercises.map(we => ({
+        workout_items: workoutExercises.map(we => ({
           exercise_name: we.exercise.name,
           sets: we.sets.length,
           reps: Math.max(...we.sets.map(s => s.reps)),
           weight_kg: Math.max(...we.sets.map(s => s.weight)),
-          notes: we.notes || '',
+          duration_seconds: null,
+          rest_seconds: null,
+          notes: we.notes || null,
         })),
       };
 
