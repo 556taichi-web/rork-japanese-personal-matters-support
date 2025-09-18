@@ -31,7 +31,11 @@ export function ProgressBar({
               {icon}
             </View>
           )}
-          <Text style={styles.label}>{label}</Text>
+          <Text style={styles.label}>
+            {label === 'Steps' ? '歩数' : 
+             label === 'Exercise' ? '運動時間' : 
+             label === 'Weight' ? '体重' : label}
+          </Text>
         </View>
         <Text style={styles.percentage}>{percentage}%</Text>
       </View>

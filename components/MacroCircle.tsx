@@ -59,7 +59,11 @@ export function MacroCircle({
         <Text style={styles.unit}>{unit}</Text>
       </View>
       
-      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.label}>
+        {label === 'Carbohydrates' ? '炭水化物' : 
+         label === 'Protein' ? 'タンパク質' : 
+         label === 'Fat' ? '脂質' : label}
+      </Text>
       <Text style={[styles.percentage, { color }]}>{percentage}%</Text>
     </View>
   );

@@ -182,8 +182,8 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.appInfo}>
-            <Text style={styles.appName}>myfitnesspal</Text>
-            <Text style={styles.appSubtitle}>PREMIUM</Text>
+            <Text style={styles.appName}>Coach AI</Text>
+            <Text style={styles.appSubtitle}>AI POWERED</Text>
           </View>
           <TouchableOpacity style={styles.notificationButton}>
             <View style={styles.notificationDot} />
@@ -191,9 +191,9 @@ export default function HomeScreen() {
         </View>
         
         <View style={styles.todaySection}>
-          <Text style={styles.todayTitle}>Today</Text>
+          <Text style={styles.todayTitle}>今日の記録</Text>
           <TouchableOpacity>
-            <Text style={styles.editButton}>Edit</Text>
+            <Text style={styles.editButton}>編集</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -210,70 +210,114 @@ export default function HomeScreen() {
           </View>
         ) : (
           <>
-            {/* Macros Section */}
+            {/* Daily Overview Card */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Macros</Text>
-              <View style={styles.macrosContainer}>
-                <MacroCircle
-                  label="Carbohydrates"
-                  value={nutritionData.carbs.current}
-                  target={nutritionData.carbs.target}
-                  unit="g"
-                  color={Colors.carbs}
-                  size={90}
-                />
-                <MacroCircle
-                  label="Fat"
-                  value={nutritionData.fat.current}
-                  target={nutritionData.fat.target}
-                  unit="g"
-                  color={Colors.fat}
-                  size={90}
-                />
-                <MacroCircle
-                  label="Protein"
-                  value={nutritionData.protein.current}
-                  target={nutritionData.protein.target}
-                  unit="g"
-                  color={Colors.protein}
-                  size={90}
-                />
+              <Text style={styles.sectionTitle}>今日の概要</Text>
+              <View style={styles.overviewCard}>
+                <View style={styles.caloriesSection}>
+                  <View style={styles.caloriesHeader}>
+                    <Text style={styles.caloriesLabel}>カロリー</Text>
+                    <Text style={styles.caloriesRemaining}>
+                      残り {Math.max(0, nutritionData.calories.target - nutritionData.calories.current)} kcal
+                    </Text>
+                  </View>
+                  <View style={styles.caloriesProgress}>
+                    <View style={styles.caloriesBar}>
+                      <View 
+                        style={[
+                          styles.caloriesBarFill, 
+                          { 
+                            width: `${Math.min((nutritionData.calories.current / nutritionData.calories.target) * 100, 100)}%` 
+                          }
+                        ]} 
+                      />
+                    </View>
+                    <Text style={styles.caloriesText}>
+                      {nutritionData.calories.current} / {nutritionData.calories.target}
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.macrosGrid}>
+                  <View style={styles.macroItem}>
+                    <View style={[styles.macroIndicator, { backgroundColor: Colors.carbs }]} />
+                    <Text style={styles.macroLabel}>炭水化物</Text>
+                    <Text style={styles.macroValue}>{nutritionData.carbs.current}g</Text>
+                  </View>
+                  <View style={styles.macroItem}>
+                    <View style={[styles.macroIndicator, { backgroundColor: Colors.protein }]} />
+                    <Text style={styles.macroLabel}>タンパク質</Text>
+                    <Text style={styles.macroValue}>{nutritionData.protein.current}g</Text>
+                  </View>
+                  <View style={styles.macroItem}>
+                    <View style={[styles.macroIndicator, { backgroundColor: Colors.fat }]} />
+                    <Text style={styles.macroLabel}>脂質</Text>
+                    <Text style={styles.macroValue}>{nutritionData.fat.current}g</Text>
+                  </View>
+                </View>
               </View>
             </View>
 
-            {/* Steps Section */}
+            {/* Activity Section */}
             <View style={styles.section}>
-              <ProgressBar
-                label="Steps"
-                value={activityData.steps.current}
-                target={activityData.steps.target}
-                unit="steps"
-                color={Colors.error}
-                icon={<Footprints size={14} color={Colors.error} />}
-              />
-            </View>
-
-            {/* Exercise Section */}
-            <View style={styles.section}>
-              <ProgressBar
-                label="Exercise"
-                value={activityData.exercise.current}
-                target={activityData.exercise.target}
-                unit="min"
-                color={Colors.warning}
-                icon={<Activity size={14} color={Colors.warning} />}
-              />
+              <Text style={styles.sectionTitle}>活動記録</Text>
+              <View style={styles.activityGrid}>
+                <View style={styles.activityCard}>
+                  <View style={styles.activityHeader}>
+                    <View style={[styles.activityIcon, { backgroundColor: Colors.success + '20' }]}>
+                      <Footprints size={16} color={Colors.success} />
+                    </View>
+                    <Text style={styles.activityLabel}>歩数</Text>
+                  </View>
+                  <Text style={styles.activityValue}>{activityData.steps.current.toLocaleString()}</Text>
+                  <Text style={styles.activityTarget}>目標: {activityData.steps.target.toLocaleString()}</Text>
+                  <View style={styles.activityProgressBar}>
+                    <View 
+                      style={[
+                        styles.activityProgressFill, 
+                        { 
+                          width: `${Math.min((activityData.steps.current / activityData.steps.target) * 100, 100)}%`,
+                          backgroundColor: Colors.success
+                        }
+                      ]} 
+                    />
+                  </View>
+                </View>
+                
+                <View style={styles.activityCard}>
+                  <View style={styles.activityHeader}>
+                    <View style={[styles.activityIcon, { backgroundColor: Colors.warning + '20' }]}>
+                      <Activity size={16} color={Colors.warning} />
+                    </View>
+                    <Text style={styles.activityLabel}>運動時間</Text>
+                  </View>
+                  <Text style={styles.activityValue}>{activityData.exercise.current}分</Text>
+                  <Text style={styles.activityTarget}>目標: {activityData.exercise.target}分</Text>
+                  <View style={styles.activityProgressBar}>
+                    <View 
+                      style={[
+                        styles.activityProgressFill, 
+                        { 
+                          width: `${Math.min((activityData.exercise.current / activityData.exercise.target) * 100, 100)}%`,
+                          backgroundColor: Colors.warning
+                        }
+                      ]} 
+                    />
+                  </View>
+                </View>
+              </View>
             </View>
 
             {/* Weight Section */}
             <View style={styles.section}>
+              <Text style={styles.sectionTitle}>体重管理</Text>
               <View style={styles.weightCard}>
                 <View style={styles.weightHeader}>
                   <View style={styles.weightLabelContainer}>
                     <View style={[styles.weightIconContainer, { backgroundColor: Colors.primary + '20' }]}>
-                      <Scale size={14} color={Colors.primary} />
+                      <Scale size={16} color={Colors.primary} />
                     </View>
-                    <Text style={styles.weightLabel}>Weight</Text>
+                    <Text style={styles.weightLabel}>現在の体重</Text>
                   </View>
                   <TouchableOpacity>
                     <Plus size={20} color={Colors.primary} />
@@ -285,19 +329,38 @@ export default function HomeScreen() {
                     <Text style={styles.currentWeight}>{activityData.weight.current}</Text>
                     <Text style={styles.weightUnit}> kg</Text>
                   </Text>
-                  <Text style={styles.weightSubtitle}>Last: {activityData.weight.current - 0.5} kg</Text>
+                  <Text style={styles.weightSubtitle}>前回: {activityData.weight.current - 0.5} kg</Text>
+                  <Text style={styles.weightGoal}>目標: {activityData.weight.target} kg</Text>
                 </View>
               </View>
             </View>
 
-            {/* Search Section */}
+            {/* Quick Actions */}
             <View style={styles.section}>
-              <TouchableOpacity 
-                style={styles.searchButton}
-                onPress={() => router.push('/meal/add')}
-              >
-                <Text style={styles.searchText}>🔍 Search for a food</Text>
-              </TouchableOpacity>
+              <Text style={styles.sectionTitle}>クイックアクション</Text>
+              <View style={styles.quickActionsGrid}>
+                <TouchableOpacity 
+                  style={[styles.quickActionCard, { backgroundColor: Colors.primary + '10' }]}
+                  onPress={() => router.push('/meal/add')}
+                >
+                  <View style={[styles.quickActionIcon, { backgroundColor: Colors.primary }]}>
+                    <Utensils size={20} color="white" />
+                  </View>
+                  <Text style={styles.quickActionTitle}>食事を記録</Text>
+                  <Text style={styles.quickActionSubtitle}>カロリーと栄養素を追加</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.quickActionCard, { backgroundColor: Colors.success + '10' }]}
+                  onPress={() => router.push('/workout/add')}
+                >
+                  <View style={[styles.quickActionIcon, { backgroundColor: Colors.success }]}>
+                    <Dumbbell size={20} color="white" />
+                  </View>
+                  <Text style={styles.quickActionTitle}>運動を記録</Text>
+                  <Text style={styles.quickActionSubtitle}>ワークアウトを追加</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </>
         )}
@@ -327,19 +390,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   appName: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: Colors.primary,
     marginRight: 8,
+    letterSpacing: 0.5,
   },
   appSubtitle: {
     fontSize: 10,
-    fontWeight: '600',
-    color: Colors.textMuted,
-    backgroundColor: Colors.divider,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    fontWeight: '700',
+    color: Colors.primary,
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    letterSpacing: 0.3,
   },
   notificationButton: {
     width: 32,
@@ -734,6 +799,174 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 12,
     color: '#10B981',
+    textAlign: 'center',
+  },
+  // New styles for redesigned UI
+  overviewCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  caloriesSection: {
+    marginBottom: 20,
+  },
+  caloriesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  caloriesLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  caloriesRemaining: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.success,
+  },
+  caloriesProgress: {
+    alignItems: 'center',
+  },
+  caloriesBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: Colors.divider,
+    borderRadius: 4,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  caloriesBarFill: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 4,
+  },
+  caloriesText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  macrosGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.divider,
+  },
+  macroItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  macroIndicator: {
+    width: 4,
+    height: 20,
+    borderRadius: 2,
+    marginBottom: 8,
+  },
+  macroLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.textTertiary,
+    marginBottom: 4,
+  },
+  macroValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  activityGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  activityCard: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  activityIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  activityLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  activityValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  activityTarget: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    marginBottom: 8,
+  },
+  activityProgressBar: {
+    height: 4,
+    backgroundColor: Colors.divider,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  activityProgressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  weightGoal: {
+    fontSize: 12,
+    color: Colors.primary,
+    marginTop: 2,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  quickActionCard: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+  },
+  quickActionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  quickActionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  quickActionSubtitle: {
+    fontSize: 12,
+    color: Colors.textTertiary,
     textAlign: 'center',
   },
 });
