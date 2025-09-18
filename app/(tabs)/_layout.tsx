@@ -2,31 +2,27 @@ import { Tabs } from "expo-router";
 import { BarChart3, PlusCircle, MessageCircle, User } from "lucide-react-native";
 import React from "react";
 
-import Colors from "@/constants/colors";
+import { Colors } from "@/constants/colors";
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#FF6B9D',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.textMuted,
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: 'white',
+          backgroundColor: Colors.surface,
           borderTopWidth: 0,
           elevation: 8,
-          shadowColor: '#000',
+          shadowColor: Colors.shadow,
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
+          shadowOpacity: 1,
           shadowRadius: 8,
-          height: 88,
-          paddingBottom: 8,
-          paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
-          marginTop: 4,
         },
       }}
     >

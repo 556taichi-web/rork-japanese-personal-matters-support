@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { 
   Activity, 
   TrendingUp, 
@@ -18,7 +17,9 @@ import {
   Zap,
   Utensils,
   Dumbbell,
-  ChevronRight
+  ChevronRight,
+  Footprints,
+  Scale
 } from 'lucide-react-native';
 
 import { useAuth } from '@/lib/auth';
@@ -27,6 +28,9 @@ import { useWorkouts } from '@/lib/hooks/useWorkouts';
 import { useNutritionLogs } from '@/lib/hooks/useNutrition';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors } from '@/constants/colors';
+import { MacroCircle } from '@/components/MacroCircle';
+import { ProgressBar } from '@/components/ProgressBar';
 
 interface StatCard {
   id: string;
@@ -70,6 +74,39 @@ export default function HomeScreen() {
   
   // Fetch recent workouts (last 5)
   const recentWorkoutsQuery = useWorkouts({ limit: 5 });
+  
+  // Calculate nutrition data
+  const nutritionData = useMemo(() => {
+    const todayLogs = todayNutritionQuery.data || [];
+    const totalCalories = todayLogs.reduce((sum: number, log: any) => sum + (log.calories || 0), 0);
+    const totalCarbs = todayLogs.reduce((sum: number, log: any) => sum + (log.carbs_g || 0), 0);
+    const totalProtein = todayLogs.reduce((sum: number, log: any) => sum + (log.protein_g || 0), 0);
+    const totalFat = todayLogs.reduce((sum: number, log: any) => sum + (log.fat_g || 0), 0);
+    
+    return {
+      calories: { current: totalCalories, target: 2000 },
+      carbs: { current: Math.round(totalCarbs), target: 250 },
+      protein: { current: Math.round(totalProtein), target: 150 },
+      fat: { current: Math.round(totalFat), target: 67 },
+    };
+  }, [todayNutritionQuery.data]);
+  
+  // Calculate activity data
+  const activityData = useMemo(() => {
+    const todayWorkouts = workoutsQuery.data?.filter((workout: any) => {
+      const workoutDate = new Date(workout.date).toDateString();
+      const today = new Date().toDateString();
+      return workoutDate === today;
+    }) || [];
+    
+    const totalDuration = todayWorkouts.reduce((sum: number, workout: any) => sum + (workout.duration_minutes || 0), 0);
+    
+    return {
+      steps: { current: 1129, target: 10000 }, // Mock data - would come from health kit
+      exercise: { current: totalDuration, target: 60 },
+      weight: { current: (profileQuery.data as any)?.weight_kg || 70, target: 65 },
+    };
+  }, [workoutsQuery.data, profileQuery.data]);
 
   const stats: StatCard[] = useMemo(() => {
     const todayCalories = todayNutritionQuery.data?.reduce((sum: number, log: any) => sum + (log.calories || 0), 0) || 0;
@@ -140,178 +177,127 @@ export default function HomeScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#FF6B9D', '#FF8A80']}
-        style={[styles.header, { paddingTop: styles.header.paddingVertical + insets.top }]}
-      >
-        <View style={styles.greeting}>
-          <Text style={styles.greetingText}>おはようございます</Text>
-          <Text style={styles.userName}>
-            {(profileQuery.data as any)?.full_name || user?.email?.split('@')?.[0] || 'ユーザー'}さん
-          </Text>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <View style={styles.appInfo}>
+            <Text style={styles.appName}>myfitnesspal</Text>
+            <Text style={styles.appSubtitle}>PREMIUM</Text>
+          </View>
+          <TouchableOpacity style={styles.notificationButton}>
+            <View style={styles.notificationDot} />
+          </TouchableOpacity>
         </View>
-        <Text style={styles.motivationText}>今日も一緒に頑張りましょう！</Text>
-      </LinearGradient>
+        
+        <View style={styles.todaySection}>
+          <Text style={styles.todayTitle}>Today</Text>
+          <TouchableOpacity>
+            <Text style={styles.editButton}>Edit</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <ScrollView 
         style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        {(profileQuery.isLoading || workoutsQuery.isLoading || todayNutritionQuery.isLoading || recentNutritionQuery.isLoading || recentWorkoutsQuery.isLoading) ? (
+        {(profileQuery.isLoading || workoutsQuery.isLoading || todayNutritionQuery.isLoading) ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FF6B9D" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.loadingText}>データを読み込み中...</Text>
           </View>
         ) : (
           <>
+            {/* Macros Section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>今日の状況</Text>
-              <View style={styles.statsGrid}>
-                {stats.map((stat) => (
-                  <View key={stat.id} style={styles.statCard}>
-                    <View style={[styles.statIcon, { backgroundColor: stat.color }]}>
-                      {stat.icon}
-                    </View>
-                    <Text style={styles.statValue}>{stat.value}</Text>
-                    <Text style={styles.statTitle}>{stat.title}</Text>
-                    <Text style={[styles.statChange, { color: stat.color }]}>
-                      {stat.change}
-                    </Text>
-                  </View>
-                ))}
+              <Text style={styles.sectionTitle}>Macros</Text>
+              <View style={styles.macrosContainer}>
+                <MacroCircle
+                  label="Carbohydrates"
+                  value={nutritionData.carbs.current}
+                  target={nutritionData.carbs.target}
+                  unit="g"
+                  color={Colors.carbs}
+                  size={90}
+                />
+                <MacroCircle
+                  label="Fat"
+                  value={nutritionData.fat.current}
+                  target={nutritionData.fat.target}
+                  unit="g"
+                  color={Colors.fat}
+                  size={90}
+                />
+                <MacroCircle
+                  label="Protein"
+                  value={nutritionData.protein.current}
+                  target={nutritionData.protein.target}
+                  unit="g"
+                  color={Colors.protein}
+                  size={90}
+                />
               </View>
             </View>
 
+            {/* Steps Section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>クイックアクション</Text>
-              {quickActions.map((action) => (
-                <TouchableOpacity
-                  key={action.id}
-                  style={styles.actionCard}
-                  onPress={action.onPress}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.actionIcon, { backgroundColor: action.color }]}>
-                    {action.icon}
-                  </View>
-                  <View style={styles.actionContent}>
-                    <Text style={styles.actionTitle}>{action.title}</Text>
-                    <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+              <ProgressBar
+                label="Steps"
+                value={activityData.steps.current}
+                target={activityData.steps.target}
+                unit="steps"
+                color={Colors.error}
+                icon={<Footprints size={14} color={Colors.error} />}
+              />
             </View>
 
-            {/* Recent Workouts Section */}
+            {/* Exercise Section */}
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>最近のトレーニング</Text>
-                <TouchableOpacity 
-                  onPress={() => router.push('/workout/history')}
-                  style={styles.sectionAction}
-                >
-                  <Text style={styles.sectionActionText}>すべて見る</Text>
-                  <ChevronRight size={16} color="#FF6B9D" />
-                </TouchableOpacity>
-              </View>
-              {recentWorkoutsQuery.data && recentWorkoutsQuery.data.length > 0 ? (
-                <View style={styles.recordsList}>
-                  {recentWorkoutsQuery.data.slice(0, 3).map((workout: any, index: number) => (
-                    <View key={workout.id} style={styles.recordCard}>
-                      <View style={[styles.recordIcon, { backgroundColor: '#EFF6FF' }]}>
-                        <Dumbbell size={20} color="#3B82F6" />
-                      </View>
-                      <View style={styles.recordContent}>
-                        <Text style={styles.recordTitle}>{workout.title || 'トレーニング'}</Text>
-                        <Text style={styles.recordSubtitle}>
-                          {workout.workout_items?.length || 0}種目 • {new Date(workout.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
-                        </Text>
-                        <Text style={styles.recordDetail}>
-                          {workout.duration_minutes ? `${workout.duration_minutes}分` : ''}
-                          {workout.description ? ` • ${workout.description.slice(0, 30)}${workout.description.length > 30 ? '...' : ''}` : ''}
-                        </Text>
-                      </View>
+              <ProgressBar
+                label="Exercise"
+                value={activityData.exercise.current}
+                target={activityData.exercise.target}
+                unit="min"
+                color={Colors.warning}
+                icon={<Activity size={14} color={Colors.warning} />}
+              />
+            </View>
+
+            {/* Weight Section */}
+            <View style={styles.section}>
+              <View style={styles.weightCard}>
+                <View style={styles.weightHeader}>
+                  <View style={styles.weightLabelContainer}>
+                    <View style={[styles.weightIconContainer, { backgroundColor: Colors.primary + '20' }]}>
+                      <Scale size={14} color={Colors.primary} />
                     </View>
-                  ))}
-                </View>
-              ) : (
-                <View style={styles.emptyState}>
-                  <Dumbbell size={32} color="#9CA3AF" />
-                  <Text style={styles.emptyStateText}>まだトレーニング記録がありません</Text>
-                  <TouchableOpacity 
-                    style={styles.emptyStateButton}
-                    onPress={() => router.push('/workout/add')}
-                  >
-                    <Text style={styles.emptyStateButtonText}>最初の記録を追加</Text>
+                    <Text style={styles.weightLabel}>Weight</Text>
+                  </View>
+                  <TouchableOpacity>
+                    <Plus size={20} color={Colors.primary} />
                   </TouchableOpacity>
                 </View>
-              )}
-            </View>
-
-            {/* Recent Meals Section */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>最近の食事記録</Text>
-                <TouchableOpacity 
-                  onPress={() => router.push('/meal/add')}
-                  style={styles.sectionAction}
-                >
-                  <Text style={styles.sectionActionText}>記録する</Text>
-                  <ChevronRight size={16} color="#FF6B9D" />
-                </TouchableOpacity>
-              </View>
-              {recentNutritionQuery.data && recentNutritionQuery.data.length > 0 ? (
-                <View style={styles.recordsList}>
-                  {recentNutritionQuery.data.slice(0, 3).map((meal: any, index: number) => (
-                    <View key={meal.id} style={styles.recordCard}>
-                      <View style={[styles.recordIcon, { backgroundColor: '#F0FDF4' }]}>
-                        <Utensils size={20} color="#10B981" />
-                      </View>
-                      <View style={styles.recordContent}>
-                        <Text style={styles.recordTitle}>{meal.food_name || '食事記録'}</Text>
-                        <Text style={styles.recordSubtitle}>
-                          {meal.meal_type === 'breakfast' ? '朝食' : 
-                           meal.meal_type === 'lunch' ? '昼食' : 
-                           meal.meal_type === 'dinner' ? '夕食' : 'おやつ'} • 
-                          {new Date(meal.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
-                        </Text>
-                        <Text style={styles.recordDetail}>
-                          {meal.calories ? `${meal.calories}kcal` : ''}
-                          {meal.quantity && meal.unit ? ` • ${meal.quantity}${meal.unit}` : ''}
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              ) : (
-                <View style={styles.emptyState}>
-                  <Utensils size={32} color="#9CA3AF" />
-                  <Text style={styles.emptyStateText}>まだ食事記録がありません</Text>
-                  <TouchableOpacity 
-                    style={styles.emptyStateButton}
-                    onPress={() => router.push('/meal/add')}
-                  >
-                    <Text style={styles.emptyStateButtonText}>最初の記録を追加</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>今日のアドバイス</Text>
-              <View style={styles.adviceCard}>
-                <View style={styles.adviceIcon}>
-                  <Clock size={24} color="#FF6B9D" />
-                </View>
-                <View style={styles.adviceContent}>
-                  <Text style={styles.adviceTitle}>水分補給を忘れずに</Text>
-                  <Text style={styles.adviceText}>
-                    1日2リットルの水分摂取を目標にしましょう。運動前後は特に重要です。
+                
+                <View style={styles.weightContent}>
+                  <Text style={styles.weightValue}>
+                    <Text style={styles.currentWeight}>{activityData.weight.current}</Text>
+                    <Text style={styles.weightUnit}> kg</Text>
                   </Text>
+                  <Text style={styles.weightSubtitle}>Last: {activityData.weight.current - 0.5} kg</Text>
                 </View>
               </View>
+            </View>
+
+            {/* Search Section */}
+            <View style={styles.section}>
+              <TouchableOpacity 
+                style={styles.searchButton}
+                onPress={() => router.push('/meal/add')}
+              >
+                <Text style={styles.searchText}>🔍 Search for a food</Text>
+              </TouchableOpacity>
             </View>
           </>
         )}
@@ -323,13 +309,153 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: Colors.background,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  appInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  appName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.primary,
+    marginRight: 8,
+  },
+  appSubtitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.textMuted,
+    backgroundColor: Colors.divider,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  notificationButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  notificationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.error,
+    position: 'absolute',
+    top: 6,
+    right: 6,
+  },
+  todaySection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  todayTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  editButton: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.primary,
+  },
+  macrosContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  weightCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  weightHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  weightLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  weightIconContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  weightLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  weightContent: {
+    marginBottom: 8,
+  },
+  weightValue: {
+    fontSize: 16,
+  },
+  currentWeight: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  weightUnit: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+  },
+  weightSubtitle: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+  },
+  searchButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  searchText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
   },
   greeting: {
     marginBottom: 8,
