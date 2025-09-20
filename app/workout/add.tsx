@@ -9,17 +9,14 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { 
   Plus, 
-  Minus, 
   Save, 
   X,
   ChevronRight,
-  Dumbbell,
-  Search
+  Dumbbell
 } from 'lucide-react-native';
 import { EXERCISE_CATEGORIES, getExercisesByCategory, Exercise } from '@/constants/exercises';
 import { useCreateWorkout } from '@/lib/hooks/useWorkouts';
@@ -29,6 +26,7 @@ interface WorkoutSet {
   id: string;
   reps: number;
   weight_kg: number;
+  duration_minutes?: number;
   completed: boolean;
 }
 
@@ -41,20 +39,22 @@ interface WorkoutExercise {
 export default function AddWorkoutScreen() {
   const [workoutTitle, setWorkoutTitle] = useState<string>('');
   const [selectedExercises, setSelectedExercises] = useState<WorkoutExercise[]>([]);
-  const [showExerciseSelector, setShowExerciseSelector] = useState<boolean>(false);
+  const [showExerciseSelector, setShowExerciseSelector] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const createWorkoutMutation = useCreateWorkout();
 
   const addExercise = (exercise: Exercise) => {
+    const isCardio = exercise.category === '有酸素';
     const newExercise: WorkoutExercise = {
       exercise,
       sets: [
         {
           id: Date.now().toString(),
-          reps: 10,
-          weight_kg: 20,
+          reps: isCardio ? 1 : 10,
+          weight_kg: isCardio ? 0 : 20,
+          duration_minutes: isCardio ? 30 : undefined,
           completed: false
         }
       ]
@@ -71,10 +71,12 @@ export default function AddWorkoutScreen() {
   const addSet = (exerciseIndex: number) => {
     const updated = [...selectedExercises];
     const lastSet = updated[exerciseIndex].sets[updated[exerciseIndex].sets.length - 1];
+    const isCardio = updated[exerciseIndex].exercise.category === '有酸素';
     const newSet: WorkoutSet = {
       id: Date.now().toString(),
-      reps: lastSet?.reps || 10,
-      weight_kg: lastSet?.weight_kg || 20,
+      reps: lastSet?.reps || (isCardio ? 1 : 10),
+      weight_kg: lastSet?.weight_kg || (isCardio ? 0 : 20),
+      duration_minutes: isCardio ? (lastSet?.duration_minutes || 30) : undefined,
       completed: false
     };
     updated[exerciseIndex].sets.push(newSet);
@@ -87,9 +89,13 @@ export default function AddWorkoutScreen() {
     setSelectedExercises(updated);
   };
 
-  const updateSet = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight_kg', value: number) => {
+  const updateSet = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight_kg' | 'duration_minutes', value: number) => {
     const updated = [...selectedExercises];
-    updated[exerciseIndex].sets[setIndex][field] = value;
+    if (field === 'duration_minutes') {
+      updated[exerciseIndex].sets[setIndex].duration_minutes = value;
+    } else {
+      updated[exerciseIndex].sets[setIndex][field] = value;
+    }
     setSelectedExercises(updated);
   };
 
@@ -112,15 +118,20 @@ export default function AddWorkoutScreen() {
 
     setIsLoading(true);
 
-    const exercises = selectedExercises.map(workoutExercise => ({
-      exercise_name: workoutExercise.exercise.name,
-      sets: workoutExercise.sets.length,
-      reps: Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.reps, 0) / workoutExercise.sets.length),
-      weight_kg: Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.weight_kg, 0) / workoutExercise.sets.length),
-      duration_seconds: null,
-      rest_seconds: null,
-      notes: workoutExercise.notes || null
-    }));
+    const exercises = selectedExercises.map(workoutExercise => {
+      const isCardio = workoutExercise.exercise.category === '有酸素';
+      const totalDuration = workoutExercise.sets.reduce((sum, set) => sum + (set.duration_minutes || 0), 0);
+      
+      return {
+        exercise_name: workoutExercise.exercise.name,
+        sets: workoutExercise.sets.length,
+        reps: isCardio ? Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.reps, 0) / workoutExercise.sets.length) : Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.reps, 0) / workoutExercise.sets.length),
+        weight_kg: isCardio ? null : Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.weight_kg, 0) / workoutExercise.sets.length),
+        duration_seconds: isCardio ? totalDuration * 60 : null,
+        rest_seconds: null,
+        notes: workoutExercise.notes || null
+      };
+    });
 
     try {
       await createWorkoutMutation.mutateAsync({
@@ -163,7 +174,7 @@ export default function AddWorkoutScreen() {
         <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
           {!selectedCategory ? (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>トレーニング部位を選択</Text>
+              <Text style={styles.sectionTitle}>トレーニング種類を選択</Text>
               <View style={styles.categoryGrid}>
                 {EXERCISE_CATEGORIES.map((category) => (
                   <TouchableOpacity
@@ -240,19 +251,7 @@ export default function AddWorkoutScreen() {
             backgroundColor: 'transparent',
           },
           headerTintColor: Colors.textPrimary,
-          headerRight: () => (
-            <TouchableOpacity 
-              onPress={saveWorkout}
-              disabled={isLoading}
-              style={styles.saveButton}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color={Colors.primary} />
-              ) : (
-                <Save size={24} color={Colors.primary} />
-              )}
-            </TouchableOpacity>
-          )
+          headerRight: () => null
         }} 
       />
 
@@ -287,7 +286,7 @@ export default function AddWorkoutScreen() {
             </View>
           ) : (
             selectedExercises.map((workoutExercise, exerciseIndex) => (
-              <View key={exerciseIndex} style={styles.exerciseContainer}>
+              <View key={`exercise-${exerciseIndex}-${workoutExercise.exercise.id}`} style={styles.exerciseContainer}>
                 <View style={styles.exerciseHeader}>
                   <View style={styles.exerciseHeaderLeft}>
                     <Text style={styles.exerciseHeaderIcon}>{workoutExercise.exercise.icon}</Text>
@@ -303,8 +302,17 @@ export default function AddWorkoutScreen() {
 
                 <View style={styles.setsHeader}>
                   <Text style={styles.setHeaderText}>セット</Text>
-                  <Text style={styles.setHeaderText}>レップ</Text>
-                  <Text style={styles.setHeaderText}>重量(kg)</Text>
+                  {workoutExercise.exercise.category === '有酸素' ? (
+                    <>
+                      <Text style={styles.setHeaderText}>時間(分)</Text>
+                      <Text style={styles.setHeaderText}>強度</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.setHeaderText}>レップ</Text>
+                      <Text style={styles.setHeaderText}>重量(kg)</Text>
+                    </>
+                  )}
                   <Text style={styles.setHeaderText}>完了</Text>
                 </View>
 
@@ -312,37 +320,65 @@ export default function AddWorkoutScreen() {
                   <View key={set.id} style={styles.setRow}>
                     <Text style={styles.setNumber}>{setIndex + 1}</Text>
                     
-                    <View style={styles.setInputContainer}>
-                      <TouchableOpacity
-                        onPress={() => updateSet(exerciseIndex, setIndex, 'reps', Math.max(1, set.reps - 1))}
-                        style={styles.setButton}
-                      >
-                        <Minus size={16} color="#6B7280" />
-                      </TouchableOpacity>
-                      <Text style={styles.setValue}>{set.reps}</Text>
-                      <TouchableOpacity
-                        onPress={() => updateSet(exerciseIndex, setIndex, 'reps', set.reps + 1)}
-                        style={styles.setButton}
-                      >
-                        <Plus size={16} color="#6B7280" />
-                      </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.setInputContainer}>
-                      <TouchableOpacity
-                        onPress={() => updateSet(exerciseIndex, setIndex, 'weight_kg', Math.max(0, set.weight_kg - 2.5))}
-                        style={styles.setButton}
-                      >
-                        <Minus size={16} color="#6B7280" />
-                      </TouchableOpacity>
-                      <Text style={styles.setValue}>{set.weight_kg}</Text>
-                      <TouchableOpacity
-                        onPress={() => updateSet(exerciseIndex, setIndex, 'weight_kg', set.weight_kg + 2.5)}
-                        style={styles.setButton}
-                      >
-                        <Plus size={16} color="#6B7280" />
-                      </TouchableOpacity>
-                    </View>
+                    {workoutExercise.exercise.category === '有酸素' ? (
+                      <>
+                        <View style={styles.setInputContainer}>
+                          <TextInput
+                            style={styles.setInput}
+                            value={(set.duration_minutes || 0).toString()}
+                            onChangeText={(text) => {
+                              const value = parseInt(text) || 0;
+                              updateSet(exerciseIndex, setIndex, 'duration_minutes', Math.max(0, value));
+                            }}
+                            keyboardType="numeric"
+                            placeholder="0"
+                            placeholderTextColor={Colors.textTertiary}
+                          />
+                        </View>
+                        <View style={styles.setInputContainer}>
+                          <TextInput
+                            style={styles.setInput}
+                            value={set.reps.toString()}
+                            onChangeText={(text) => {
+                              const value = parseInt(text) || 0;
+                              updateSet(exerciseIndex, setIndex, 'reps', Math.max(1, Math.min(10, value)));
+                            }}
+                            keyboardType="numeric"
+                            placeholder="5"
+                            placeholderTextColor={Colors.textTertiary}
+                          />
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        <View style={styles.setInputContainer}>
+                          <TextInput
+                            style={styles.setInput}
+                            value={set.reps.toString()}
+                            onChangeText={(text) => {
+                              const value = parseInt(text) || 0;
+                              updateSet(exerciseIndex, setIndex, 'reps', Math.max(0, value));
+                            }}
+                            keyboardType="numeric"
+                            placeholder="0"
+                            placeholderTextColor={Colors.textTertiary}
+                          />
+                        </View>
+                        <View style={styles.setInputContainer}>
+                          <TextInput
+                            style={styles.setInput}
+                            value={set.weight_kg.toString()}
+                            onChangeText={(text) => {
+                              const value = parseFloat(text) || 0;
+                              updateSet(exerciseIndex, setIndex, 'weight_kg', Math.max(0, value));
+                            }}
+                            keyboardType="numeric"
+                            placeholder="0"
+                            placeholderTextColor={Colors.textTertiary}
+                          />
+                        </View>
+                      </>
+                    )}
 
                     <TouchableOpacity
                       onPress={() => toggleSetCompleted(exerciseIndex, setIndex)}
@@ -376,6 +412,31 @@ export default function AddWorkoutScreen() {
           )}
         </View>
       </ScrollView>
+      
+      {/* Bottom Save Button */}
+      {!showExerciseSelector && (
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity 
+            onPress={saveWorkout}
+            disabled={isLoading}
+            style={styles.bottomSaveButton}
+          >
+            <LinearGradient
+              colors={[Colors.primary, Colors.primaryLight]}
+              style={styles.bottomSaveButtonGradient}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <>
+                  <Save size={20} color="white" />
+                  <Text style={styles.bottomSaveButtonText}>ワークアウトを保存</Text>
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
     </LinearGradient>
   );
 }
@@ -673,5 +734,46 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '500',
     marginLeft: 4,
+  },
+  setInput: {
+    backgroundColor: Colors.glass,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    minWidth: 60,
+  },
+  bottomButtonContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 16,
+    backgroundColor: 'transparent',
+  },
+  bottomSaveButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  bottomSaveButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  bottomSaveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 8,
   },
 });

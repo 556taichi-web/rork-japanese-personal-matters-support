@@ -550,6 +550,104 @@ export const EXERCISE_PRESETS: Exercise[] = [
     muscle_groups: ['体幹', '腹直筋', '有酸素'],
     icon: '🏔️',
     description: '山登りのような動作の全身運動'
+  },
+  
+  // 有酸素トレーニング
+  {
+    id: 'running',
+    name: 'ランニング',
+    category: '有酸素',
+    muscle_groups: ['全身', '心肺機能'],
+    icon: '🏃‍♂️',
+    description: '屋外または室内でのランニング'
+  },
+  {
+    id: 'treadmill',
+    name: 'トレッドミル',
+    category: '有酸素',
+    muscle_groups: ['全身', '心肺機能'],
+    icon: '🏃‍♀️',
+    description: 'トレッドミルでのランニング'
+  },
+  {
+    id: 'cycling',
+    name: 'サイクリング',
+    category: '有酸素',
+    muscle_groups: ['下半身', '心肺機能'],
+    icon: '🚴‍♂️',
+    description: '屋外または室内でのサイクリング'
+  },
+  {
+    id: 'stationary_bike',
+    name: 'エアロバイク',
+    category: '有酸素',
+    muscle_groups: ['下半身', '心肺機能'],
+    icon: '🚴‍♀️',
+    description: 'エアロバイクでの有酸素運動'
+  },
+  {
+    id: 'elliptical',
+    name: 'エリプティカル',
+    category: '有酸素',
+    muscle_groups: ['全身', '心肺機能'],
+    icon: '🏃‍♂️',
+    description: 'エリプティカルマシンでの有酸素運動'
+  },
+  {
+    id: 'rowing',
+    name: 'ローイング',
+    category: '有酸素',
+    muscle_groups: ['全身', '心肺機能'],
+    icon: '🚣‍♂️',
+    description: 'ローイングマシンでの全身有酸素運動'
+  },
+  {
+    id: 'swimming',
+    name: '水泳',
+    category: '有酸素',
+    muscle_groups: ['全身', '心肺機能'],
+    icon: '🏊‍♂️',
+    description: 'プールでの水泳'
+  },
+  {
+    id: 'walking',
+    name: 'ウォーキング',
+    category: '有酸素',
+    muscle_groups: ['下半身', '心肺機能'],
+    icon: '🚶‍♂️',
+    description: '屋外または室内でのウォーキング'
+  },
+  {
+    id: 'hiit',
+    name: 'HIIT',
+    category: '有酸素',
+    muscle_groups: ['全身', '心肺機能'],
+    icon: '⚡',
+    description: '高強度インターバルトレーニング'
+  },
+  {
+    id: 'jump_rope',
+    name: '縄跳び',
+    category: '有酸素',
+    muscle_groups: ['全身', '心肺機能'],
+    icon: '🪢',
+    description: '縄跳びでの有酸素運動'
+  },
+  {
+    id: 'burpees',
+    name: 'バーピー',
+    category: '有酸素',
+    muscle_groups: ['全身', '心肺機能'],
+    icon: '🤸‍♂️',
+    description: '全身を使った高強度運動'
+  },
+  {
+    id: 'step_ups',
+    name: 'ステップアップ',
+    category: '有酸素',
+    muscle_groups: ['下半身', '心肺機能'],
+    icon: '📶',
+    description: '台を使った昇降運動'
   }
 ];
 
@@ -559,7 +657,8 @@ export const EXERCISE_CATEGORIES = [
   '脚',
   '肩',
   '腕',
-  '腹筋'
+  '腹筋',
+  '有酸素'
 ];
 
 export function getExercisesByCategory(category: string): Exercise[] {
