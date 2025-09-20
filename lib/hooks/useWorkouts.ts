@@ -12,7 +12,15 @@ interface CreateWorkoutData {
   date: string;
   duration_minutes?: number;
   calories_burned?: number;
-  workout_items: Omit<WorkoutItem, 'id' | 'workout_id' | 'created_at'>[];
+  workout_items: {
+    exercise_name: string;
+    sets?: number | null;
+    reps?: number | null;
+    weight_kg?: number | null;
+    duration_seconds?: number | null;
+    rest_seconds?: number | null;
+    notes?: string | null;
+  }[];
 }
 
 export function useWorkouts(options?: { limit?: number }) {
@@ -51,42 +59,69 @@ export function useCreateWorkout() {
   
   return useMutation({
     mutationFn: async (workoutData: CreateWorkoutData) => {
-      if (!user?.id) throw new Error('User not authenticated');
+      console.log('useCreateWorkout: Starting mutation with data:', workoutData);
+      console.log('useCreateWorkout: User ID:', user?.id);
+      
+      if (!user?.id) {
+        console.error('useCreateWorkout: User not authenticated');
+        throw new Error('User not authenticated');
+      }
       
       // Create workout
-      const { data: workout, error: workoutError } = await supabase
+      const workoutInsertData = {
+        user_id: user.id,
+        title: workoutData.title,
+        description: workoutData.description,
+        date: workoutData.date,
+        duration_minutes: workoutData.duration_minutes,
+        calories_burned: workoutData.calories_burned,
+      };
+      
+      console.log('useCreateWorkout: Inserting workout:', workoutInsertData);
+      
+      const { data: workout, error: workoutError } = await (supabase as any)
         .from('workouts')
-        .insert({
-          user_id: user.id,
-          title: workoutData.title,
-          description: workoutData.description,
-          date: workoutData.date,
-          duration_minutes: workoutData.duration_minutes,
-          calories_burned: workoutData.calories_burned,
-        })
+        .insert(workoutInsertData)
         .select()
         .single();
       
-      if (workoutError) throw workoutError;
+      if (workoutError) {
+        console.error('useCreateWorkout: Workout creation error:', workoutError);
+        throw new Error(`Failed to create workout: ${workoutError.message}`);
+      }
+      
+      console.log('useCreateWorkout: Workout created successfully:', workout);
       
       // Create workout items
       if (workoutData.workout_items.length > 0) {
-        const { error: itemsError } = await supabase
-          .from('workout_items')
-          .insert(
-            workoutData.workout_items.map(item => ({
-              ...item,
-              workout_id: workout.id,
-            }))
-          );
+        const workoutItemsData = workoutData.workout_items.map(item => ({
+          ...item,
+          workout_id: workout!.id,
+        }));
         
-        if (itemsError) throw itemsError;
+        console.log('useCreateWorkout: Inserting workout items:', workoutItemsData);
+        
+        const { error: itemsError } = await (supabase as any)
+          .from('workout_items')
+          .insert(workoutItemsData);
+        
+        if (itemsError) {
+          console.error('useCreateWorkout: Workout items creation error:', itemsError);
+          throw new Error(`Failed to create workout exercises: ${itemsError.message}`);
+        }
+        
+        console.log('useCreateWorkout: Workout items created successfully');
       }
       
+      console.log('useCreateWorkout: Mutation completed successfully');
       return workout;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('useCreateWorkout: onSuccess called with data:', data);
       queryClient.invalidateQueries({ queryKey: ['workouts', user?.id] });
+    },
+    onError: (error) => {
+      console.error('useCreateWorkout: onError called with error:', error);
     },
   });
 }

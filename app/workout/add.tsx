@@ -140,21 +140,23 @@ export default function AddWorkoutScreen() {
         };
       });
 
-      console.log('Saving workout with data:', {
+      const workoutData = {
         title: workoutTitle,
         date: new Date().toISOString().split('T')[0],
         workout_items
-      });
-
-      await createWorkoutMutation.mutateAsync({
-        title: workoutTitle,
-        date: new Date().toISOString().split('T')[0],
-        workout_items
-      });
+      };
       
-      Alert.alert('成功', 'ワークアウトが保存されました', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      console.log('Saving workout with data:', workoutData);
+
+      await createWorkoutMutation.mutateAsync(workoutData);
+      
+      console.log('Workout saved successfully, navigating back');
+      router.back();
+      
+      // Show success message after navigation
+      setTimeout(() => {
+        Alert.alert('成功', 'ワークアウトが保存されました');
+      }, 100);
     } catch (error) {
       console.error('Save workout error:', error);
       Alert.alert('エラー', 'ワークアウトの保存に失敗しました。もう一度お試しください。');
