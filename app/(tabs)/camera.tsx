@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Dumbbell, Utensils, ChevronRight } from 'lucide-react-native';
+import { Colors } from '@/constants/colors';
 
 export default function RecordScreen() {
   const handleWorkoutRecord = () => {
@@ -13,47 +15,70 @@ export default function RecordScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>記録を追加</Text>
-        <Text style={styles.subtitle}>今日の活動を記録しましょう</Text>
-        
-        <View style={styles.optionsContainer}>
-          <TouchableOpacity style={styles.optionCard} onPress={handleWorkoutRecord}>
-            <View style={styles.iconContainer}>
-              <Dumbbell size={48} color="#FF6B9D" />
-            </View>
-            <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>トレーニング記録</Text>
-              <Text style={styles.optionDescription}>
-                セット数、レップ数、重量を記録
-              </Text>
-            </View>
-            <ChevronRight size={20} color="#9CA3AF" />
-          </TouchableOpacity>
+    <LinearGradient
+      colors={Colors.backgroundGradient}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.content}>
+          <Text style={styles.title}>記録を追加</Text>
+          <Text style={styles.subtitle}>今日の活動を記録しましょう</Text>
           
-          <TouchableOpacity style={styles.optionCard} onPress={handleMealRecord}>
-            <View style={styles.iconContainer}>
-              <Utensils size={48} color="#4ECDC4" />
-            </View>
-            <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>食事記録</Text>
-              <Text style={styles.optionDescription}>
-                写真撮影または手動入力で記録
-              </Text>
-            </View>
-            <ChevronRight size={20} color="#9CA3AF" />
-          </TouchableOpacity>
+          <View style={styles.optionsContainer}>
+            <TouchableOpacity onPress={handleWorkoutRecord}>
+              <LinearGradient
+                colors={Colors.surfaceGradient}
+                style={styles.optionCard}
+              >
+                <LinearGradient
+                  colors={[Colors.success + '20', Colors.success + '10']}
+                  style={styles.iconContainer}
+                >
+                  <Dumbbell size={48} color={Colors.success} />
+                </LinearGradient>
+                <View style={styles.optionContent}>
+                  <Text style={styles.optionTitle}>トレーニング記録</Text>
+                  <Text style={styles.optionDescription}>
+                    セット数、レップ数、重量を記録
+                  </Text>
+                </View>
+                <ChevronRight size={20} color={Colors.textTertiary} />
+              </LinearGradient>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={handleMealRecord}>
+              <LinearGradient
+                colors={Colors.surfaceGradient}
+                style={styles.optionCard}
+              >
+                <LinearGradient
+                  colors={[Colors.primary + '20', Colors.primary + '10']}
+                  style={styles.iconContainer}
+                >
+                  <Utensils size={48} color={Colors.primary} />
+                </LinearGradient>
+                <View style={styles.optionContent}>
+                  <Text style={styles.optionTitle}>食事記録</Text>
+                  <Text style={styles.optionDescription}>
+                    写真撮影または手動入力で記録
+                  </Text>
+                </View>
+                <ChevronRight size={20} color={Colors.textTertiary} />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
     flex: 1,
@@ -62,13 +87,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#2D3748',
+    color: Colors.textPrimary,
     textAlign: 'center',
     marginTop: 20,
   },
   subtitle: {
     fontSize: 16,
-    color: '#718096',
+    color: Colors.textSecondary,
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 40,
@@ -79,39 +104,47 @@ const styles = StyleSheet.create({
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 8,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+    marginBottom: 20,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#F7FAFC',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   optionContent: {
     flex: 1,
   },
   optionTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#2D3748',
-    marginBottom: 4,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 6,
   },
   optionDescription: {
     fontSize: 14,
-    color: '#718096',
+    color: Colors.textSecondary,
     lineHeight: 20,
   },
 });

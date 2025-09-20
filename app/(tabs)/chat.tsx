@@ -21,6 +21,7 @@ import {
   TrendingUp
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '@/constants/colors';
 
 interface Message {
   id: string;
@@ -143,11 +144,15 @@ export default function ChatScreen() {
   }, [messages]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <LinearGradient
-        colors={['#FF6B9D', '#FF8A80']}
-        style={styles.header}
-      >
+    <LinearGradient
+      colors={Colors.backgroundGradient}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+        <LinearGradient
+          colors={Colors.surfaceGradient}
+          style={styles.header}
+        >
         <View style={styles.headerContent}>
           <View style={styles.botAvatar}>
             <Bot size={24} color="white" />
@@ -158,7 +163,7 @@ export default function ChatScreen() {
           </View>
           <Sparkles size={24} color="rgba(255, 255, 255, 0.8)" />
         </View>
-      </LinearGradient>
+        </LinearGradient>
 
       <KeyboardAvoidingView 
         style={styles.chatContainer}
@@ -242,7 +247,7 @@ export default function ChatScreen() {
             value={inputText}
             onChangeText={setInputText}
             placeholder="メッセージを入力してください..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={Colors.textTertiary}
             multiline
             maxLength={500}
             editable={!isLoading}
@@ -257,28 +262,38 @@ export default function ChatScreen() {
             activeOpacity={0.7}
           >
             <LinearGradient
-              colors={(!inputText.trim() || isLoading) ? ['#D1D5DB', '#D1D5DB'] : ['#FF6B9D', '#FF8A80']}
+              colors={(!inputText.trim() || isLoading) ? [Colors.textMuted, Colors.textMuted] : [Colors.primary, Colors.primaryLight]}
               style={styles.sendButtonGradient}
             >
               <Send size={20} color="white" />
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     paddingHorizontal: 24,
     paddingVertical: 20,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   headerContent: {
     flexDirection: 'row',
@@ -288,7 +303,9 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: Colors.glass,
+    borderWidth: 2,
+    borderColor: Colors.glassBorder,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -299,12 +316,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold' as const,
-    color: 'white',
+    color: Colors.textPrimary,
     marginBottom: 2,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: Colors.textSecondary,
   },
   chatContainer: {
     flex: 1,
@@ -332,7 +349,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FFF1F5',
+    backgroundColor: Colors.primary + '20',
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -341,7 +360,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
@@ -353,17 +372,24 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   userMessageBubble: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.primary,
     borderBottomRightRadius: 4,
-  },
-  aiMessageBubble: {
-    backgroundColor: 'white',
-    borderBottomLeftRadius: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
+  },
+  aiMessageBubble: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    borderBottomLeftRadius: 4,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   messageText: {
     fontSize: 16,
@@ -373,7 +399,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   aiMessageText: {
-    color: '#1F2937',
+    color: Colors.textPrimary,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -381,20 +407,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   loadingBubble: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
     borderBottomLeftRadius: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   loadingText: {
     fontSize: 16,
-    color: '#9CA3AF',
+    color: Colors.textTertiary,
     fontStyle: 'italic',
   },
   quickQuestionsContainer: {
@@ -403,27 +431,29 @@ const styles = StyleSheet.create({
   quickQuestionsTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#6B7280',
+    color: Colors.textSecondary,
     marginBottom: 12,
     textAlign: 'center',
   },
   quickQuestionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   quickQuestionText: {
     fontSize: 14,
-    color: '#374151',
+    color: Colors.textPrimary,
     marginLeft: 8,
   },
   inputContainer: {
@@ -431,19 +461,20 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'white',
+    backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: Colors.glassBorder,
   },
   textInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border,
+    backgroundColor: Colors.glass,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#1F2937',
+    color: Colors.textPrimary,
     maxHeight: 100,
     marginRight: 12,
   },

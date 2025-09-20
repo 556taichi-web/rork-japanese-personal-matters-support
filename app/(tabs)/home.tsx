@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { 
   Activity, 
   TrendingUp, 
@@ -177,7 +178,10 @@ export default function HomeScreen() {
   ];
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <LinearGradient
+      colors={Colors.backgroundGradient}
+      style={[styles.container, { paddingTop: insets.top }]}
+    >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -213,7 +217,10 @@ export default function HomeScreen() {
             {/* Daily Overview Card */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>今日の概要</Text>
-              <View style={styles.overviewCard}>
+              <LinearGradient
+                colors={Colors.surfaceGradient}
+                style={styles.overviewCard}
+              >
                 <View style={styles.caloriesSection}>
                   <View style={styles.caloriesHeader}>
                     <Text style={styles.caloriesLabel}>カロリー</Text>
@@ -255,14 +262,17 @@ export default function HomeScreen() {
                     <Text style={styles.macroValue}>{nutritionData.fat.current}g</Text>
                   </View>
                 </View>
-              </View>
+              </LinearGradient>
             </View>
 
             {/* Activity Section */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>活動記録</Text>
               <View style={styles.activityGrid}>
-                <View style={styles.activityCard}>
+                <LinearGradient
+                  colors={Colors.surfaceGradient}
+                  style={styles.activityCard}
+                >
                   <View style={styles.activityHeader}>
                     <View style={[styles.activityIcon, { backgroundColor: Colors.success + '20' }]}>
                       <Footprints size={16} color={Colors.success} />
@@ -282,9 +292,12 @@ export default function HomeScreen() {
                       ]} 
                     />
                   </View>
-                </View>
+                </LinearGradient>
                 
-                <View style={styles.activityCard}>
+                <LinearGradient
+                  colors={Colors.surfaceGradient}
+                  style={styles.activityCard}
+                >
                   <View style={styles.activityHeader}>
                     <View style={[styles.activityIcon, { backgroundColor: Colors.warning + '20' }]}>
                       <Activity size={16} color={Colors.warning} />
@@ -304,14 +317,17 @@ export default function HomeScreen() {
                       ]} 
                     />
                   </View>
-                </View>
+                </LinearGradient>
               </View>
             </View>
 
             {/* Weight Section */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>体重管理</Text>
-              <View style={styles.weightCard}>
+              <LinearGradient
+                colors={Colors.surfaceGradient}
+                style={styles.weightCard}
+              >
                 <View style={styles.weightHeader}>
                   <View style={styles.weightLabelContainer}>
                     <View style={[styles.weightIconContainer, { backgroundColor: Colors.primary + '20' }]}>
@@ -332,7 +348,7 @@ export default function HomeScreen() {
                   <Text style={styles.weightSubtitle}>前回: {activityData.weight.current - 0.5} kg</Text>
                   <Text style={styles.weightGoal}>目標: {activityData.weight.target} kg</Text>
                 </View>
-              </View>
+              </LinearGradient>
             </View>
 
             {/* Quick Actions */}
@@ -340,44 +356,56 @@ export default function HomeScreen() {
               <Text style={styles.sectionTitle}>クイックアクション</Text>
               <View style={styles.quickActionsGrid}>
                 <TouchableOpacity 
-                  style={[styles.quickActionCard, { backgroundColor: Colors.primary + '10' }]}
                   onPress={() => router.push('/meal/add')}
                 >
-                  <View style={[styles.quickActionIcon, { backgroundColor: Colors.primary }]}>
-                    <Utensils size={20} color="white" />
-                  </View>
-                  <Text style={styles.quickActionTitle}>食事を記録</Text>
-                  <Text style={styles.quickActionSubtitle}>カロリーと栄養素を追加</Text>
+                  <LinearGradient
+                    colors={[Colors.primary + '20', Colors.primary + '10']}
+                    style={styles.quickActionCard}
+                  >
+                    <LinearGradient
+                      colors={[Colors.primary, Colors.primaryLight]}
+                      style={styles.quickActionIcon}
+                    >
+                      <Utensils size={20} color="white" />
+                    </LinearGradient>
+                    <Text style={styles.quickActionTitle}>食事を記録</Text>
+                    <Text style={styles.quickActionSubtitle}>カロリーと栄養素を追加</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
-                  style={[styles.quickActionCard, { backgroundColor: Colors.success + '10' }]}
                   onPress={() => router.push('/workout/add')}
                 >
-                  <View style={[styles.quickActionIcon, { backgroundColor: Colors.success }]}>
-                    <Dumbbell size={20} color="white" />
-                  </View>
-                  <Text style={styles.quickActionTitle}>運動を記録</Text>
-                  <Text style={styles.quickActionSubtitle}>ワークアウトを追加</Text>
+                  <LinearGradient
+                    colors={[Colors.success + '20', Colors.success + '10']}
+                    style={styles.quickActionCard}
+                  >
+                    <LinearGradient
+                      colors={[Colors.success, '#22c55e']}
+                      style={styles.quickActionIcon}
+                    >
+                      <Dumbbell size={20} color="white" />
+                    </LinearGradient>
+                    <Text style={styles.quickActionTitle}>運動を記録</Text>
+                    <Text style={styles.quickActionSubtitle}>ワークアウトを追加</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
               </View>
             </View>
           </>
         )}
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   header: {
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: Colors.background,
   },
   headerTop: {
     flexDirection: 'row',
@@ -410,7 +438,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.glass,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -454,14 +484,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   weightCard: {
-    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
   },
   weightHeader: {
     flexDirection: 'row',
@@ -553,7 +584,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     marginBottom: 16,
   },
   statsGrid: {
@@ -803,14 +834,15 @@ const styles = StyleSheet.create({
   },
   // New styles for redesigned UI
   overviewCard: {
-    backgroundColor: Colors.surface,
     borderRadius: 20,
     padding: 20,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
   caloriesSection: {
     marginBottom: 20,
@@ -886,14 +918,15 @@ const styles = StyleSheet.create({
   },
   activityCard: {
     flex: 1,
-    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
   },
   activityHeader: {
     flexDirection: 'row',
@@ -948,6 +981,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
   },
   quickActionIcon: {
     width: 40,
@@ -956,6 +991,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   quickActionTitle: {
     fontSize: 14,

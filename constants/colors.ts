@@ -1,62 +1,64 @@
-// クールで落ち着いたトーンのカラーパレット
+// ダークテーマ - グラデーションカラーパレット
 export const Colors = {
-  // Primary colors - クールなブルー系
-  primary: '#2563EB',
-  primaryLight: '#3B82F6',
-  primaryDark: '#1D4ED8',
+  // Background gradients - スクリーンショット参考
+  backgroundGradient: ['#1a1a2e', '#16213e', '#0f3460'] as const,
+  surfaceGradient: ['#2a2a4a', '#1e2a5a', '#1a2650'] as const,
   
-  // Secondary colors - アクセント用
-  secondary: '#06B6D4',
-  secondaryLight: '#0891B2',
+  // Primary colors - 青紫系グラデーション
+  primary: '#4f46e5',
+  primaryLight: '#6366f1',
+  primaryDark: '#3730a3',
   
-  // Neutral colors - 落ち着いたグレー系
-  background: '#F8FAFC',
-  surface: '#FFFFFF',
-  surfaceSecondary: '#F1F5F9',
+  // Secondary colors - シアン系
+  secondary: '#06b6d4',
+  secondaryLight: '#0891b2',
+  accent: '#8b5cf6',
   
-  // Text colors
-  textPrimary: '#0F172A',
-  textSecondary: '#475569',
-  textTertiary: '#64748B',
-  textMuted: '#94A3B8',
+  // Dark theme backgrounds
+  background: '#0f0f23',
+  surface: '#1a1a2e',
+  surfaceSecondary: '#252545',
+  surfaceTertiary: '#2a2a4a',
   
-  // Status colors
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  info: '#3B82F6',
+  // Text colors for dark theme
+  textPrimary: '#ffffff',
+  textSecondary: '#e2e8f0',
+  textTertiary: '#cbd5e1',
+  textMuted: '#94a3b8',
   
-  // Macro colors (栄養素用)
-  carbs: '#06B6D4',
-  protein: '#8B5CF6',
-  fat: '#F59E0B',
+  // Status colors - ダークテーマ対応
+  success: '#10b981',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  info: '#3b82f6',
   
-  // Border and divider
-  border: '#E2E8F0',
-  divider: '#F1F5F9',
+  // Macro colors (栄養素用) - より鮮やかに
+  carbs: '#06b6d4',
+  protein: '#8b5cf6',
+  fat: '#f59e0b',
   
-  // Shadow
-  shadow: 'rgba(15, 23, 42, 0.08)',
-  shadowDark: 'rgba(15, 23, 42, 0.16)',
+  // Border and divider - ダーク用
+  border: '#374151',
+  divider: '#4b5563',
+  
+  // Shadow - ダーク用
+  shadow: 'rgba(0, 0, 0, 0.3)',
+  shadowDark: 'rgba(0, 0, 0, 0.5)',
+  
+  // Glass effect
+  glass: 'rgba(255, 255, 255, 0.1)',
+  glassBorder: 'rgba(255, 255, 255, 0.2)',
 };
 
 // Legacy export for compatibility
-const tintColorLight = Colors.primary;
-const tintColorDark = '#fff';
+const tintColorDark = Colors.primary;
 
 export default {
-  light: {
+  dark: {
     text: Colors.textPrimary,
     background: Colors.background,
-    tint: tintColorLight,
-    tabIconDefault: Colors.textMuted,
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#fff',
-    background: '#000',
     tint: tintColorDark,
-    tabIconDefault: '#ccc',
+    tabIconDefault: Colors.textMuted,
     tabIconSelected: tintColorDark,
   },
 };

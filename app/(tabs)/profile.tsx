@@ -16,6 +16,7 @@ import { useAuth } from '@/lib/auth';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { Colors } from '@/constants/colors';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -107,11 +108,15 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#FF6B9D', '#FF8A80']}
-        style={styles.header}
-      >
+    <LinearGradient
+      colors={Colors.backgroundGradient}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <LinearGradient
+          colors={Colors.surfaceGradient}
+          style={styles.header}
+        >
         <View style={styles.headerContent}>
           <View style={styles.avatar}>
             <User size={32} color="white" />
@@ -121,9 +126,9 @@ export default function ProfileScreen() {
           </Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
         </View>
-      </LinearGradient>
+        </LinearGradient>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>基本情報</Text>
@@ -237,21 +242,31 @@ export default function ProfileScreen() {
             <Text style={styles.logoutText}>ログアウト</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     paddingHorizontal: 24,
     paddingVertical: 32,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   headerContent: {
     alignItems: 'center',
@@ -260,7 +275,9 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: Colors.glass,
+    borderWidth: 2,
+    borderColor: Colors.glassBorder,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -268,12 +285,12 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: Colors.textSecondary,
   },
   content: {
     flex: 1,
@@ -292,19 +309,24 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
   },
   editButton: {
     padding: 8,
+    backgroundColor: Colors.glass,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
   },
   formContainer: {
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
     elevation: 4,
   },
   inputGroup: {
@@ -313,29 +335,35 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: Colors.textSecondary,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.border,
+    backgroundColor: Colors.glass,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#1F2937',
+    color: Colors.textPrimary,
   },
   value: {
     fontSize: 16,
-    color: '#1F2937',
+    color: Colors.textPrimary,
     paddingVertical: 10,
   },
   saveButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.primary,
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   saveButtonText: {
     color: 'white',
@@ -345,29 +373,30 @@ const styles = StyleSheet.create({
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
     elevation: 4,
   },
   settingText: {
     fontSize: 16,
-    color: '#1F2937',
+    color: Colors.textPrimary,
     marginLeft: 12,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#FEE2E2',
+    borderColor: Colors.error + '40',
+    backgroundColor: Colors.error + '10',
   },
   logoutText: {
     fontSize: 16,
@@ -383,6 +412,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.textSecondary,
   },
 });
