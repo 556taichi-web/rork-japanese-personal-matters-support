@@ -11,16 +11,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { 
   Plus, 
   Minus, 
   Save, 
   X,
   ChevronRight,
-  Dumbbell
+  Dumbbell,
+  Search
 } from 'lucide-react-native';
 import { EXERCISE_CATEGORIES, getExercisesByCategory, Exercise } from '@/constants/exercises';
 import { useCreateWorkout } from '@/lib/hooks/useWorkouts';
+import { Colors } from '@/constants/colors';
 
 interface WorkoutSet {
   id: string;
@@ -138,35 +141,52 @@ export default function AddWorkoutScreen() {
 
   if (showExerciseSelector) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <LinearGradient
+        colors={Colors.backgroundGradient}
+        style={styles.container}
+      >
         <Stack.Screen 
           options={{ 
             title: 'エクササイズを選択',
+            headerStyle: {
+              backgroundColor: 'transparent',
+            },
+            headerTintColor: Colors.textPrimary,
             headerRight: () => (
               <TouchableOpacity onPress={() => setShowExerciseSelector(false)}>
-                <X size={24} color="#1F2937" />
+                <X size={24} color={Colors.textPrimary} />
               </TouchableOpacity>
             )
           }} 
         />
         
-        <ScrollView style={styles.content}>
+        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
           {!selectedCategory ? (
-            <View style={styles.categoryGrid}>
-              {EXERCISE_CATEGORIES.map((category) => (
-                <TouchableOpacity
-                  key={category}
-                  style={styles.categoryCard}
-                  onPress={() => setSelectedCategory(category)}
-                >
-                  <Text style={styles.categoryIcon}>💪</Text>
-                  <Text style={styles.categoryName}>{category}</Text>
-                  <ChevronRight size={20} color="#6B7280" />
-                </TouchableOpacity>
-              ))}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>トレーニング部位を選択</Text>
+              <View style={styles.categoryGrid}>
+                {EXERCISE_CATEGORIES.map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    style={styles.categoryCard}
+                    onPress={() => setSelectedCategory(category)}
+                  >
+                    <LinearGradient
+                      colors={Colors.surfaceGradient}
+                      style={styles.categoryCardGradient}
+                    >
+                      <View style={styles.categoryIconContainer}>
+                        <Dumbbell size={24} color={Colors.primary} />
+                      </View>
+                      <Text style={styles.categoryName}>{category}</Text>
+                      <ChevronRight size={20} color={Colors.textTertiary} />
+                    </LinearGradient>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           ) : (
-            <View>
+            <View style={styles.section}>
               <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => setSelectedCategory('')}
@@ -176,36 +196,50 @@ export default function AddWorkoutScreen() {
               
               <Text style={styles.categoryTitle}>{selectedCategory}</Text>
               
-              {getExercisesByCategory(selectedCategory).map((exercise) => (
-                <TouchableOpacity
-                  key={exercise.id}
-                  style={styles.exerciseCard}
-                  onPress={() => addExercise(exercise)}
-                >
-                  <View style={styles.exerciseIcon}>
-                    <Text style={styles.exerciseIconText}>{exercise.icon}</Text>
-                  </View>
-                  <View style={styles.exerciseInfo}>
-                    <Text style={styles.exerciseName}>{exercise.name}</Text>
-                    <Text style={styles.exerciseDescription}>{exercise.description}</Text>
-                    <Text style={styles.exerciseMuscles}>
-                      {exercise.muscle_groups.join(', ')}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+              <View style={styles.exerciseList}>
+                {getExercisesByCategory(selectedCategory).map((exercise) => (
+                  <TouchableOpacity
+                    key={exercise.id}
+                    style={styles.exerciseCard}
+                    onPress={() => addExercise(exercise)}
+                  >
+                    <LinearGradient
+                      colors={Colors.surfaceGradient}
+                      style={styles.exerciseCardGradient}
+                    >
+                      <View style={styles.exerciseIconContainer}>
+                        <Text style={styles.exerciseIconText}>{exercise.icon}</Text>
+                      </View>
+                      <View style={styles.exerciseInfo}>
+                        <Text style={styles.exerciseName}>{exercise.name}</Text>
+                        <Text style={styles.exerciseDescription}>{exercise.description}</Text>
+                        <Text style={styles.exerciseMuscles}>
+                          {exercise.muscle_groups.join(', ')}
+                        </Text>
+                      </View>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           )}
         </ScrollView>
-      </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <LinearGradient
+      colors={Colors.backgroundGradient}
+      style={styles.container}
+    >
       <Stack.Screen 
         options={{ 
           title: 'ワークアウトを追加',
+          headerStyle: {
+            backgroundColor: 'transparent',
+          },
+          headerTintColor: Colors.textPrimary,
           headerRight: () => (
             <TouchableOpacity 
               onPress={saveWorkout}
@@ -213,9 +247,9 @@ export default function AddWorkoutScreen() {
               style={styles.saveButton}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#FF6B9D" />
+                <ActivityIndicator size="small" color={Colors.primary} />
               ) : (
-                <Save size={24} color="#FF6B9D" />
+                <Save size={24} color={Colors.primary} />
               )}
             </TouchableOpacity>
           )
@@ -342,14 +376,13 @@ export default function AddWorkoutScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   content: {
     flex: 1,
@@ -367,25 +400,32 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
+    marginBottom: 16,
   },
   titleInput: {
-    backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.glassBorder,
+    backgroundColor: Colors.glass,
+    color: Colors.textPrimary,
   },
   addExerciseButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   addExerciseButtonText: {
     color: 'white',
@@ -398,70 +438,91 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingVertical: 48,
+    backgroundColor: Colors.glass,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.textSecondary,
     marginTop: 12,
   },
   categoryGrid: {
-    padding: 20,
+    gap: 12,
   },
   categoryCard: {
+    borderRadius: 16,
+    marginBottom: 12,
+    overflow: 'hidden',
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  categoryCardGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    borderRadius: 16,
   },
-  categoryIcon: {
-    fontSize: 24,
+  categoryIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
   },
   categoryName: {
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
   },
   backButton: {
     padding: 16,
   },
   backButtonText: {
     fontSize: 16,
-    color: '#FF6B9D',
+    color: Colors.primary,
     fontWeight: '500',
   },
   categoryTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginHorizontal: 20,
+    fontWeight: '700',
+    color: Colors.textPrimary,
     marginBottom: 16,
   },
-  exerciseCard: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 20,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+  exerciseList: {
+    gap: 12,
   },
-  exerciseIcon: {
+  exerciseCard: {
+    borderRadius: 16,
+    marginBottom: 12,
+    overflow: 'hidden',
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  exerciseCardGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    borderRadius: 16,
+  },
+  exerciseIconContainer: {
     width: 48,
     height: 48,
-    backgroundColor: '#FFF1F5',
+    backgroundColor: Colors.primary + '20',
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
@@ -476,28 +537,30 @@ const styles = StyleSheet.create({
   exerciseName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   exerciseDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.textSecondary,
     marginBottom: 4,
   },
   exerciseMuscles: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: Colors.textTertiary,
   },
   exerciseContainer: {
-    backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: Colors.glass,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
   },
   exerciseHeader: {
     flexDirection: 'row',
@@ -516,7 +579,7 @@ const styles = StyleSheet.create({
   exerciseHeaderName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
   },
   removeExerciseButton: {
     padding: 4,
@@ -527,13 +590,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.divider,
     marginBottom: 8,
   },
   setHeaderText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: Colors.textTertiary,
     flex: 1,
     textAlign: 'center',
   },
@@ -546,7 +609,7 @@ const styles = StyleSheet.create({
   setNumber: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     flex: 1,
     textAlign: 'center',
   },
@@ -560,14 +623,14 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.divider,
     justifyContent: 'center',
     alignItems: 'center',
   },
   setValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     marginHorizontal: 12,
     minWidth: 30,
     textAlign: 'center',
@@ -576,17 +639,17 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.divider,
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
   },
   completedButtonActive: {
-    backgroundColor: '#10B981',
+    backgroundColor: Colors.success,
   },
   completedButtonText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.textTertiary,
   },
   completedButtonTextActive: {
     color: 'white',
@@ -602,12 +665,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#FF6B9D',
+    borderColor: Colors.primary,
     borderRadius: 8,
     borderStyle: 'dashed',
   },
   addSetButtonText: {
-    color: '#FF6B9D',
+    color: Colors.primary,
     fontWeight: '500',
     marginLeft: 4,
   },

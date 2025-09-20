@@ -7,11 +7,11 @@ import { Colors } from '@/constants/colors';
 
 export default function RecordScreen() {
   const handleWorkoutRecord = () => {
-    router.push('/record/workout');
+    router.push('/workout/add');
   };
 
   const handleMealRecord = () => {
-    router.push('/record/meal');
+    router.push('/meal/add');
   };
 
   return (
