@@ -129,7 +129,7 @@ export default function AddWorkoutScreen() {
           ? workoutExercise.sets.reduce((sum, set) => sum + set.weight_kg, 0) / workoutExercise.sets.length
           : 0;
         
-        return {
+        const item = {
           exercise_name: workoutExercise.exercise.name,
           sets: workoutExercise.sets.length,
           reps: avgReps,
@@ -138,6 +138,9 @@ export default function AddWorkoutScreen() {
           rest_seconds: null,
           notes: workoutExercise.notes || null
         };
+        
+        console.log('Creating workout item:', JSON.stringify(item, null, 2));
+        return item;
       });
 
       const workoutData = {
@@ -146,20 +149,25 @@ export default function AddWorkoutScreen() {
         workout_items
       };
       
-      console.log('Saving workout with data:', workoutData);
+      console.log('Saving workout with data:', JSON.stringify(workoutData, null, 2));
 
-      await createWorkoutMutation.mutateAsync(workoutData);
+      const result = await createWorkoutMutation.mutateAsync(workoutData);
       
-      console.log('Workout saved successfully, navigating back');
-      router.back();
+      console.log('Workout saved successfully:', result);
       
-      // Show success message after navigation
-      setTimeout(() => {
-        Alert.alert('成功', 'ワークアウトが保存されました');
-      }, 100);
+      Alert.alert('成功', 'ワークアウトが保存されました', [
+        {
+          text: 'OK',
+          onPress: () => {
+            router.back();
+          }
+        }
+      ]);
+      
     } catch (error) {
       console.error('Save workout error:', error);
-      Alert.alert('エラー', 'ワークアウトの保存に失敗しました。もう一度お試しください。');
+      const errorMessage = error instanceof Error ? error.message : 'ワークアウトの保存に失敗しました。もう一度お試しください。';
+      Alert.alert('エラー', errorMessage);
     } finally {
       setIsLoading(false);
     }
