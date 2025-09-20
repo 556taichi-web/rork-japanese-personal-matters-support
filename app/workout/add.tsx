@@ -118,33 +118,46 @@ export default function AddWorkoutScreen() {
 
     setIsLoading(true);
 
-    const exercises = selectedExercises.map(workoutExercise => {
-      const isCardio = workoutExercise.exercise.category === '有酸素';
-      const totalDuration = workoutExercise.sets.reduce((sum, set) => sum + (set.duration_minutes || 0), 0);
-      
-      return {
-        exercise_name: workoutExercise.exercise.name,
-        sets: workoutExercise.sets.length,
-        reps: isCardio ? Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.reps, 0) / workoutExercise.sets.length) : Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.reps, 0) / workoutExercise.sets.length),
-        weight_kg: isCardio ? null : Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.weight_kg, 0) / workoutExercise.sets.length),
-        duration_seconds: isCardio ? totalDuration * 60 : null,
-        rest_seconds: null,
-        notes: workoutExercise.notes || null
-      };
-    });
-
     try {
+      const workout_items = selectedExercises.map(workoutExercise => {
+        const isCardio = workoutExercise.exercise.category === '有酸素';
+        const totalDuration = workoutExercise.sets.reduce((sum, set) => sum + (set.duration_minutes || 0), 0);
+        const avgReps = workoutExercise.sets.length > 0 
+          ? Math.round(workoutExercise.sets.reduce((sum, set) => sum + set.reps, 0) / workoutExercise.sets.length)
+          : 0;
+        const avgWeight = workoutExercise.sets.length > 0 
+          ? workoutExercise.sets.reduce((sum, set) => sum + set.weight_kg, 0) / workoutExercise.sets.length
+          : 0;
+        
+        return {
+          exercise_name: workoutExercise.exercise.name,
+          sets: workoutExercise.sets.length,
+          reps: avgReps,
+          weight_kg: isCardio ? null : avgWeight,
+          duration_seconds: isCardio ? totalDuration * 60 : null,
+          rest_seconds: null,
+          notes: workoutExercise.notes || null
+        };
+      });
+
+      console.log('Saving workout with data:', {
+        title: workoutTitle,
+        date: new Date().toISOString().split('T')[0],
+        workout_items
+      });
+
       await createWorkoutMutation.mutateAsync({
         title: workoutTitle,
         date: new Date().toISOString().split('T')[0],
-        workout_items: exercises
+        workout_items
       });
+      
       Alert.alert('成功', 'ワークアウトが保存されました', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error) {
       console.error('Save workout error:', error);
-      Alert.alert('エラー', 'ワークアウトの保存に失敗しました');
+      Alert.alert('エラー', 'ワークアウトの保存に失敗しました。もう一度お試しください。');
     } finally {
       setIsLoading(false);
     }
@@ -313,7 +326,6 @@ export default function AddWorkoutScreen() {
                       <Text style={styles.setHeaderText}>重量(kg)</Text>
                     </>
                   )}
-                  <Text style={styles.setHeaderText}>完了</Text>
                 </View>
 
                 {workoutExercise.sets.map((set, setIndex) => (
@@ -380,14 +392,7 @@ export default function AddWorkoutScreen() {
                       </>
                     )}
 
-                    <TouchableOpacity
-                      onPress={() => toggleSetCompleted(exerciseIndex, setIndex)}
-                      style={[styles.completedButton, set.completed && styles.completedButtonActive]}
-                    >
-                      <Text style={[styles.completedButtonText, set.completed && styles.completedButtonTextActive]}>
-                        ✓
-                      </Text>
-                    </TouchableOpacity>
+
 
                     {workoutExercise.sets.length > 1 && (
                       <TouchableOpacity
