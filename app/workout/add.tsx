@@ -166,15 +166,8 @@ export default function AddWorkoutScreen() {
       console.log('=== BACKEND RESPONSE ===');
       console.log('Workout saved successfully:', JSON.stringify(result, null, 2));
       
-      Alert.alert('成功', 'ワークアウトが保存されました', [
-        {
-          text: 'OK',
-          onPress: () => {
-            console.log('Navigating back...');
-            router.back();
-          }
-        }
-      ]);
+      console.log('Workout saved successfully, navigating back...');
+      router.back();
       
     } catch (error) {
       console.error('=== SAVE WORKOUT ERROR ===');
