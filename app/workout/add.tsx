@@ -18,7 +18,7 @@ import {
   ChevronRight,
   Dumbbell
 } from 'lucide-react-native';
-import { EXERCISE_CATEGORIES, getExercisesByCategory, Exercise } from '@/constants/exercises';
+import { EXERCISE_CATEGORIES, getExercisesByCategory, Exercise, getExerciseDisplayName } from '@/constants/exercises';
 import { useCreateWorkout } from '@/lib/hooks/useWorkouts';
 import { Colors } from '@/constants/colors';
 
@@ -130,7 +130,7 @@ export default function AddWorkoutScreen() {
           : 0;
         
         const item = {
-          exercise_name: workoutExercise.exercise.name,
+          exercise_name: getExerciseDisplayName(workoutExercise.exercise),
           sets: workoutExercise.sets.length,
           reps: avgReps,
           weight_kg: isCardio ? null : avgWeight,

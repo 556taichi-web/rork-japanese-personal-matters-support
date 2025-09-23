@@ -1,6 +1,7 @@
 export interface Exercise {
   id: string;
   name: string;
+  english_name?: string;
   category: string;
   muscle_groups: string[];
   icon: string;
@@ -46,6 +47,7 @@ export const EXERCISE_PRESETS: Exercise[] = [
   {
     id: 'bench_press',
     name: 'ベンチプレス',
+    english_name: 'Bench Press',
     category: '胸筋',
     muscle_groups: ['大胸筋中部', '三角筋', '上腕三頭筋'],
     icon: '🏋️‍♂️',
@@ -70,6 +72,7 @@ export const EXERCISE_PRESETS: Exercise[] = [
   {
     id: 'push_up',
     name: 'プッシュアップ',
+    english_name: 'Push-ups',
     category: '胸筋',
     muscle_groups: ['大胸筋中部', '三角筋', '上腕三頭筋'],
     icon: '💪',
@@ -564,6 +567,7 @@ export const EXERCISE_PRESETS: Exercise[] = [
   {
     id: 'treadmill',
     name: 'トレッドミル',
+    english_name: 'Treadmill Running',
     category: '有酸素',
     muscle_groups: ['全身', '心肺機能'],
     icon: '🏃‍♀️',
@@ -667,4 +671,14 @@ export function getExercisesByCategory(category: string): Exercise[] {
 
 export function getExerciseById(id: string): Exercise | undefined {
   return EXERCISE_PRESETS.find(exercise => exercise.id === id);
+}
+
+export function getExerciseByName(name: string): Exercise | undefined {
+  return EXERCISE_PRESETS.find(exercise => 
+    exercise.name === name || exercise.english_name === name
+  );
+}
+
+export function getExerciseDisplayName(exercise: Exercise): string {
+  return exercise.english_name || exercise.name;
 }
