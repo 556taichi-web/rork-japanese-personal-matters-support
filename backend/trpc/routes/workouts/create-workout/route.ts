@@ -23,7 +23,8 @@ const createWorkoutSchema = z.object({
 export const createWorkoutProcedure = protectedProcedure
   .input(createWorkoutSchema)
   .mutation(async ({ ctx, input }) => {
-    console.log('Creating workout for user:', ctx.user.id);
+    console.log('=== CREATE WORKOUT START ===');
+    console.log('User ID:', ctx.user.id);
     console.log('Input data:', JSON.stringify(input, null, 2));
     
     const { workout_items, ...workoutData } = input;
@@ -35,7 +36,8 @@ export const createWorkoutProcedure = protectedProcedure
         user_id: ctx.user.id,
       };
       
-      console.log('Inserting workout:', JSON.stringify(workoutInsertData, null, 2));
+      console.log('=== INSERTING WORKOUT ===');
+      console.log('Workout data:', JSON.stringify(workoutInsertData, null, 2));
       
       const { data: workout, error: workoutError } = await (ctx.supabase as any)
         .from('workouts')
@@ -44,15 +46,23 @@ export const createWorkoutProcedure = protectedProcedure
         .single();
 
       if (workoutError) {
-        console.error('Error creating workout:', workoutError);
+        console.error('=== WORKOUT INSERT ERROR ===');
+        console.error('Error details:', workoutError);
+        console.error('Error code:', workoutError.code);
+        console.error('Error message:', workoutError.message);
+        console.error('Error hint:', workoutError.hint);
         throw new Error(`Failed to create workout: ${workoutError.message}`);
       }
 
-      console.log('Workout created successfully:', workout);
+      console.log('=== WORKOUT CREATED SUCCESSFULLY ===');
+      console.log('Created workout:', JSON.stringify(workout, null, 2));
 
       // Create workout items if provided
       if (workout_items && workout_items.length > 0) {
-        const workoutItems: Database['public']['Tables']['workout_items']['Insert'][] = workout_items.map(item => {
+        console.log('=== PROCESSING WORKOUT ITEMS ===');
+        console.log('Number of items to insert:', workout_items.length);
+        
+        const workoutItems: Database['public']['Tables']['workout_items']['Insert'][] = workout_items.map((item, index) => {
           const processedItem = {
             workout_id: workout!.id,
             exercise_name: item.exercise_name,
@@ -63,11 +73,12 @@ export const createWorkoutProcedure = protectedProcedure
             rest_seconds: item.rest_seconds,
             notes: item.notes,
           };
-          console.log('Processing workout item:', JSON.stringify(processedItem, null, 2));
+          console.log(`Item ${index + 1}:`, JSON.stringify(processedItem, null, 2));
           return processedItem;
         });
 
-        console.log('Inserting workout items:', JSON.stringify(workoutItems, null, 2));
+        console.log('=== INSERTING WORKOUT ITEMS ===');
+        console.log('Items to insert:', JSON.stringify(workoutItems, null, 2));
 
         const { data: insertedItems, error: itemsError } = await (ctx.supabase as any)
           .from('workout_items')
@@ -75,14 +86,23 @@ export const createWorkoutProcedure = protectedProcedure
           .select();
 
         if (itemsError) {
-          console.error('Error creating workout items:', itemsError);
+          console.error('=== WORKOUT ITEMS INSERT ERROR ===');
+          console.error('Error details:', itemsError);
+          console.error('Error code:', itemsError.code);
+          console.error('Error message:', itemsError.message);
+          console.error('Error hint:', itemsError.hint);
           throw new Error(`Failed to create workout exercises: ${itemsError.message}`);
         }
 
-        console.log('Workout items created successfully:', insertedItems);
+        console.log('=== WORKOUT ITEMS CREATED SUCCESSFULLY ===');
+        console.log('Inserted items count:', insertedItems?.length || 0);
+        console.log('Inserted items:', JSON.stringify(insertedItems, null, 2));
+      } else {
+        console.log('=== NO WORKOUT ITEMS TO INSERT ===');
       }
 
       // Fetch the complete workout with items
+      console.log('=== FETCHING COMPLETE WORKOUT ===');
       const { data: completeWorkout, error: fetchError } = await (ctx.supabase as any)
         .from('workouts')
         .select(`
@@ -93,14 +113,21 @@ export const createWorkoutProcedure = protectedProcedure
         .single();
 
       if (fetchError) {
-        console.error('Error fetching complete workout:', fetchError);
+        console.error('=== FETCH COMPLETE WORKOUT ERROR ===');
+        console.error('Error details:', fetchError);
         throw new Error(`Failed to fetch created workout: ${fetchError.message}`);
       }
 
-      console.log('Complete workout fetched:', JSON.stringify(completeWorkout, null, 2));
+      console.log('=== COMPLETE WORKOUT FETCHED ===');
+      console.log('Complete workout:', JSON.stringify(completeWorkout, null, 2));
+      console.log('=== CREATE WORKOUT SUCCESS ===');
       return completeWorkout;
     } catch (error) {
-      console.error('Unexpected error in createWorkoutProcedure:', error);
+      console.error('=== UNEXPECTED ERROR ===');
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      console.error('=== CREATE WORKOUT FAILED ===');
       throw error;
     }
   });

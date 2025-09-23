@@ -680,5 +680,5 @@ export function getExerciseByName(name: string): Exercise | undefined {
 }
 
 export function getExerciseDisplayName(exercise: Exercise): string {
-  return exercise.english_name || exercise.name;
+  return exercise.name;
 }

@@ -106,6 +106,8 @@ export default function AddWorkoutScreen() {
   };
 
   const saveWorkout = async () => {
+    console.log('=== SAVE WORKOUT START ===');
+    
     if (!workoutTitle.trim()) {
       Alert.alert('エラー', 'ワークアウト名を入力してください');
       return;
@@ -116,10 +118,14 @@ export default function AddWorkoutScreen() {
       return;
     }
 
+    console.log('Validation passed. Selected exercises:', selectedExercises.length);
     setIsLoading(true);
 
     try {
-      const workout_items = selectedExercises.map(workoutExercise => {
+      console.log('=== PROCESSING EXERCISES ===');
+      const workout_items = selectedExercises.map((workoutExercise, index) => {
+        console.log(`Processing exercise ${index + 1}:`, workoutExercise.exercise.name);
+        
         const isCardio = workoutExercise.exercise.category === '有酸素';
         const totalDuration = workoutExercise.sets.reduce((sum, set) => sum + (set.duration_minutes || 0), 0);
         const avgReps = workoutExercise.sets.length > 0 
@@ -129,8 +135,11 @@ export default function AddWorkoutScreen() {
           ? workoutExercise.sets.reduce((sum, set) => sum + set.weight_kg, 0) / workoutExercise.sets.length
           : 0;
         
+        const exerciseName = getExerciseDisplayName(workoutExercise.exercise);
+        console.log(`Exercise name for DB: "${exerciseName}"`);
+        
         const item = {
-          exercise_name: getExerciseDisplayName(workoutExercise.exercise),
+          exercise_name: exerciseName,
           sets: workoutExercise.sets.length,
           reps: avgReps,
           weight_kg: isCardio ? null : avgWeight,
@@ -139,7 +148,7 @@ export default function AddWorkoutScreen() {
           notes: workoutExercise.notes || null
         };
         
-        console.log('Creating workout item:', JSON.stringify(item, null, 2));
+        console.log(`Workout item ${index + 1}:`, JSON.stringify(item, null, 2));
         return item;
       });
 
@@ -149,26 +158,39 @@ export default function AddWorkoutScreen() {
         workout_items
       };
       
-      console.log('Saving workout with data:', JSON.stringify(workoutData, null, 2));
+      console.log('=== SENDING TO BACKEND ===');
+      console.log('Final workout data:', JSON.stringify(workoutData, null, 2));
 
       const result = await createWorkoutMutation.mutateAsync(workoutData);
       
-      console.log('Workout saved successfully:', result);
+      console.log('=== BACKEND RESPONSE ===');
+      console.log('Workout saved successfully:', JSON.stringify(result, null, 2));
       
       Alert.alert('成功', 'ワークアウトが保存されました', [
         {
           text: 'OK',
           onPress: () => {
+            console.log('Navigating back...');
             router.back();
           }
         }
       ]);
       
     } catch (error) {
-      console.error('Save workout error:', error);
+      console.error('=== SAVE WORKOUT ERROR ===');
+      console.error('Error type:', typeof error);
+      console.error('Error details:', error);
+      
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
       const errorMessage = error instanceof Error ? error.message : 'ワークアウトの保存に失敗しました。もう一度お試しください。';
+      console.error('Showing error to user:', errorMessage);
       Alert.alert('エラー', errorMessage);
     } finally {
+      console.log('=== SAVE WORKOUT END ===');
       setIsLoading(false);
     }
   };
