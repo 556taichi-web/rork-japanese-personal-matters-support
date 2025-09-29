@@ -44,6 +44,13 @@ export default function AddWorkoutScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const createWorkoutMutation = useCreateWorkout();
+  
+  console.log('AddWorkoutScreen render - createWorkoutMutation:', {
+    isPending: createWorkoutMutation.isPending,
+    isError: createWorkoutMutation.isError,
+    error: createWorkoutMutation.error,
+    mutateAsync: typeof createWorkoutMutation.mutateAsync
+  });
 
   const addExercise = (exercise: Exercise) => {
     const isCardio = exercise.category === '有酸素';
@@ -107,18 +114,24 @@ export default function AddWorkoutScreen() {
 
   const saveWorkout = async () => {
     console.log('=== SAVE WORKOUT START ===');
+    console.log('Button pressed - saveWorkout function called');
     
     if (!workoutTitle.trim()) {
+      console.log('Validation failed: No workout title');
       Alert.alert('エラー', 'ワークアウト名を入力してください');
       return;
     }
 
     if (selectedExercises.length === 0) {
+      console.log('Validation failed: No exercises selected');
       Alert.alert('エラー', '少なくとも1つのエクササイズを追加してください');
       return;
     }
 
     console.log('Validation passed. Selected exercises:', selectedExercises.length);
+    console.log('Workout title:', workoutTitle);
+    console.log('createWorkoutMutation object:', createWorkoutMutation);
+    console.log('createWorkoutMutation.mutateAsync type:', typeof createWorkoutMutation.mutateAsync);
     setIsLoading(true);
 
     try {
@@ -160,8 +173,10 @@ export default function AddWorkoutScreen() {
       
       console.log('=== SENDING TO BACKEND ===');
       console.log('Final workout data:', JSON.stringify(workoutData, null, 2));
+      console.log('About to call createWorkoutMutation.mutateAsync...');
 
       const result = await createWorkoutMutation.mutateAsync(workoutData);
+      console.log('mutateAsync completed successfully');
       
       console.log('=== BACKEND RESPONSE ===');
       console.log('Workout saved successfully:', JSON.stringify(result, null, 2));
@@ -173,6 +188,7 @@ export default function AddWorkoutScreen() {
       console.error('=== SAVE WORKOUT ERROR ===');
       console.error('Error type:', typeof error);
       console.error('Error details:', error);
+      console.error('Error constructor:', error?.constructor?.name);
       
       if (error instanceof Error) {
         console.error('Error message:', error.message);
@@ -447,7 +463,10 @@ export default function AddWorkoutScreen() {
       {!showExerciseSelector && (
         <View style={styles.bottomButtonContainer}>
           <TouchableOpacity 
-            onPress={saveWorkout}
+            onPress={() => {
+              console.log('BUTTON PRESSED - TouchableOpacity onPress triggered');
+              saveWorkout();
+            }}
             disabled={isLoading}
             style={styles.bottomSaveButton}
           >
