@@ -166,8 +166,8 @@ export default function AddWorkoutScreen() {
       console.log('=== BACKEND RESPONSE ===');
       console.log('Workout saved successfully:', JSON.stringify(result, null, 2));
       
-      console.log('Workout saved successfully, navigating back...');
-      router.back();
+      console.log('Workout saved successfully, navigating to home...');
+      router.replace('/(tabs)/home');
       
     } catch (error) {
       console.error('=== SAVE WORKOUT ERROR ===');
