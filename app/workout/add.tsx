@@ -37,7 +37,6 @@ interface WorkoutExercise {
 }
 
 export default function AddWorkoutScreen() {
-  const [workoutTitle, setWorkoutTitle] = useState<string>('');
   const [selectedExercises, setSelectedExercises] = useState<WorkoutExercise[]>([]);
   const [showExerciseSelector, setShowExerciseSelector] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -116,20 +115,20 @@ export default function AddWorkoutScreen() {
     console.log('=== SAVE WORKOUT START ===');
     console.log('Button pressed - saveWorkout function called');
     
-    if (!workoutTitle.trim()) {
-      console.log('Validation failed: No workout title');
-      Alert.alert('エラー', 'ワークアウト名を入力してください');
-      return;
-    }
-
     if (selectedExercises.length === 0) {
       console.log('Validation failed: No exercises selected');
       Alert.alert('エラー', '少なくとも1つのエクササイズを追加してください');
       return;
     }
 
+    // Generate workout title from exercise categories
+    const categories = [...new Set(selectedExercises.map(ex => ex.exercise.category))];
+    const workoutTitle = categories.length === 1 
+      ? `${categories[0]}トレーニング`
+      : `複合トレーニング`;
+
     console.log('Validation passed. Selected exercises:', selectedExercises.length);
-    console.log('Workout title:', workoutTitle);
+    console.log('Generated workout title:', workoutTitle);
     console.log('createWorkoutMutation object:', createWorkoutMutation);
     console.log('createWorkoutMutation.mutateAsync type:', typeof createWorkoutMutation.mutateAsync);
     setIsLoading(true);
@@ -310,16 +309,7 @@ export default function AddWorkoutScreen() {
       />
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>ワークアウト名</Text>
-          <TextInput
-            style={styles.titleInput}
-            value={workoutTitle}
-            onChangeText={setWorkoutTitle}
-            placeholder="例: 胸筋トレーニング"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
+
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
