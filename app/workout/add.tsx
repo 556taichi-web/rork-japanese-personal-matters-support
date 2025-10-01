@@ -131,7 +131,9 @@ export default function AddWorkoutScreen() {
     console.log('Generated workout title:', workoutTitle);
     console.log('createWorkoutMutation object:', createWorkoutMutation);
     console.log('createWorkoutMutation.mutateAsync type:', typeof createWorkoutMutation.mutateAsync);
+    
     setIsLoading(true);
+    console.log('Loading state set to true');
 
     try {
       console.log('=== PROCESSING EXERCISES ===');
@@ -181,7 +183,21 @@ export default function AddWorkoutScreen() {
       console.log('Workout saved successfully:', JSON.stringify(result, null, 2));
       
       console.log('Workout saved successfully, navigating to home...');
-      router.replace('/(tabs)/home');
+      
+      // Show success message before navigation
+      Alert.alert(
+        '成功',
+        'ワークアウトが保存されました！',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              console.log('Success alert dismissed, navigating to home');
+              router.replace('/(tabs)/home');
+            }
+          }
+        ]
+      );
       
     } catch (error) {
       console.error('=== SAVE WORKOUT ERROR ===');
@@ -198,8 +214,9 @@ export default function AddWorkoutScreen() {
       console.error('Showing error to user:', errorMessage);
       Alert.alert('エラー', errorMessage);
     } finally {
-      console.log('=== SAVE WORKOUT END ===');
+      console.log('=== SAVE WORKOUT END - Setting loading to false ===');
       setIsLoading(false);
+      console.log('Loading state set to false');
     }
   };
 
@@ -455,10 +472,15 @@ export default function AddWorkoutScreen() {
           <TouchableOpacity 
             onPress={() => {
               console.log('BUTTON PRESSED - TouchableOpacity onPress triggered');
-              saveWorkout();
+              console.log('Current isLoading state:', isLoading);
+              if (!isLoading) {
+                saveWorkout();
+              } else {
+                console.log('Button press ignored - already loading');
+              }
             }}
             disabled={isLoading}
-            style={styles.bottomSaveButton}
+            style={[styles.bottomSaveButton, isLoading && { opacity: 0.6 }]}
           >
             <LinearGradient
               colors={[Colors.primary, Colors.primaryLight]}
