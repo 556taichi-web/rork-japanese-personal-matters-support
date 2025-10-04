@@ -24,6 +24,9 @@ export default function MealRecordScreen() {
   const [quantity, setQuantity] = useState<string>('1');
   const [unit, setUnit] = useState<string>('人前');
   const [calories, setCalories] = useState<string>('');
+  const [protein, setProtein] = useState<string>('');
+  const [carbs, setCarbs] = useState<string>('');
+  const [fat, setFat] = useState<string>('');
   const [imageUri, setImageUri] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -135,6 +138,9 @@ export default function MealRecordScreen() {
         quantity: quantityNum,
         unit: unit,
         calories: calories ? parseFloat(calories) : null,
+        protein_g: protein ? parseFloat(protein) : null,
+        carbs_g: carbs ? parseFloat(carbs) : null,
+        fat_g: fat ? parseFloat(fat) : null,
         image_url: imageUri || null,
       };
 
@@ -291,6 +297,47 @@ export default function MealRecordScreen() {
           placeholder="例: 500"
           placeholderTextColor="#94a3b8"
         />
+      </View>
+
+      <View style={styles.macrosSection}>
+        <Text style={styles.macrosSectionTitle}>栄養素（任意）</Text>
+        <View style={styles.macrosGrid}>
+          <View style={[styles.inputGroup, { flex: 1 }]}>
+            <Text style={styles.inputLabel}>タンパク質 (g)</Text>
+            <TextInput
+              style={styles.textInput}
+              value={protein}
+              onChangeText={setProtein}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor="#94a3b8"
+            />
+          </View>
+
+          <View style={[styles.inputGroup, { flex: 1 }]}>
+            <Text style={styles.inputLabel}>炭水化物 (g)</Text>
+            <TextInput
+              style={styles.textInput}
+              value={carbs}
+              onChangeText={setCarbs}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor="#94a3b8"
+            />
+          </View>
+
+          <View style={[styles.inputGroup, { flex: 1 }]}>
+            <Text style={styles.inputLabel}>脂質 (g)</Text>
+            <TextInput
+              style={styles.textInput}
+              value={fat}
+              onChangeText={setFat}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor="#94a3b8"
+            />
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -560,5 +607,18 @@ const styles = StyleSheet.create({
   },
   activeMethodTabText: {
     color: '#ffffff',
+  },
+  macrosSection: {
+    marginTop: 8,
+  },
+  macrosSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: 12,
+  },
+  macrosGrid: {
+    flexDirection: 'row',
+    gap: 12,
   },
 });
