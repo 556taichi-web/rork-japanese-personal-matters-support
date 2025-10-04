@@ -28,10 +28,10 @@ export default function MealRecordScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const mealTypes: { key: MealType; label: string; color: string }[] = [
-    { key: 'breakfast', label: '朝食', color: Colors.warning },
-    { key: 'lunch', label: '昼食', color: Colors.secondary },
-    { key: 'dinner', label: '夕食', color: Colors.error },
-    { key: 'snack', label: '間食', color: Colors.accent },
+    { key: 'breakfast', label: '朝食', color: '#f59e0b' },
+    { key: 'lunch', label: '昼食', color: '#06b6d4' },
+    { key: 'dinner', label: '夕食', color: '#8b5cf6' },
+    { key: 'snack', label: '間食', color: '#10b981' },
   ];
 
   const commonUnits = ['人前', 'g', 'ml', '個', '切れ', '杯'];
@@ -234,6 +234,7 @@ export default function MealRecordScreen() {
           value={foodName}
           onChangeText={setFoodName}
           placeholder="例: ご飯、味噌汁、焼き魚"
+          placeholderTextColor="#94a3b8"
           multiline
           numberOfLines={2}
         />
@@ -248,6 +249,7 @@ export default function MealRecordScreen() {
             onChangeText={setQuantity}
             keyboardType="numeric"
             placeholder="1"
+            placeholderTextColor="#94a3b8"
           />
         </View>
 
@@ -287,6 +289,7 @@ export default function MealRecordScreen() {
           onChangeText={setCalories}
           keyboardType="numeric"
           placeholder="例: 500"
+          placeholderTextColor="#94a3b8"
         />
       </View>
     </View>
@@ -362,7 +365,7 @@ export default function MealRecordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#0f0f23',
   },
   header: {
     flexDirection: 'row',
@@ -370,9 +373,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: Colors.surface,
+    backgroundColor: '#1a1a2e',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#374151',
   },
   backButton: {
     padding: 8,
@@ -402,13 +405,13 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   methodCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: '#1a1a2e',
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: Colors.shadowDark,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: 'rgba(0, 0, 0, 0.5)',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -421,7 +424,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.surfaceSecondary,
+    backgroundColor: '#252545',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -449,15 +452,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 2,
     borderColor: 'transparent',
+    opacity: 0.7,
   },
   selectedMealType: {
-    borderColor: Colors.textPrimary,
+    borderColor: '#ffffff',
     borderWidth: 3,
+    opacity: 1,
   },
   mealTypeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: '#ffffff',
   },
   inputGroup: {
     marginBottom: 16,
@@ -469,14 +474,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: Colors.surface,
+    backgroundColor: '#1a1a2e',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#374151',
     textAlignVertical: 'top',
-    color: Colors.textPrimary,
+    color: '#ffffff',
   },
   row: {
     flexDirection: 'row',
@@ -487,34 +492,34 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   unitChip: {
-    backgroundColor: Colors.surfaceSecondary,
+    backgroundColor: '#252545',
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#374151',
   },
   selectedUnit: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: '#4f46e5',
+    borderColor: '#4f46e5',
   },
   unitText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: '#e2e8f0',
   },
   selectedUnitText: {
-    color: 'white',
+    color: '#ffffff',
   },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.success,
+    backgroundColor: '#10b981',
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
     gap: 8,
-    shadowColor: Colors.shadowDark,
+    shadowColor: 'rgba(0, 0, 0, 0.5)',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -526,11 +531,11 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    color: '#ffffff',
   },
   methodSwitcher: {
     flexDirection: 'row',
-    backgroundColor: Colors.surfaceSecondary,
+    backgroundColor: '#252545',
     borderRadius: 12,
     padding: 4,
     marginBottom: 24,
@@ -546,14 +551,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   activeMethodTab: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#4f46e5',
   },
   methodTabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.textMuted,
+    color: '#94a3b8',
   },
   activeMethodTabText: {
-    color: 'white',
+    color: '#ffffff',
   },
 });
