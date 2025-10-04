@@ -184,20 +184,9 @@ export default function AddWorkoutScreen() {
       
       console.log('Workout saved successfully, navigating to home...');
       
-      // Show success message before navigation
-      Alert.alert(
-        '成功',
-        'ワークアウトが保存されました！',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              console.log('Success alert dismissed, navigating to home');
-              router.replace('/(tabs)/home');
-            }
-          }
-        ]
-      );
+      // Navigate to home immediately after successful save
+      router.replace('/(tabs)/home');
+      console.log('Navigation to home triggered');
       
     } catch (error) {
       console.error('=== SAVE WORKOUT ERROR ===');
