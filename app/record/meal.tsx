@@ -287,23 +287,25 @@ export default function MealRecordScreen() {
         </View>
       </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>カロリー（任意）</Text>
-        <TextInput
-          style={styles.textInput}
-          value={calories}
-          onChangeText={setCalories}
-          keyboardType="numeric"
-          placeholder="例: 500"
-          placeholderTextColor="#94a3b8"
-        />
-      </View>
+      <View style={styles.nutritionSection}>
+        <Text style={styles.nutritionSectionTitle}>栄養情報（任意）</Text>
+        
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>カロリー (kcal)</Text>
+          <TextInput
+            style={styles.textInput}
+            value={calories}
+            onChangeText={setCalories}
+            keyboardType="numeric"
+            placeholder="例: 500"
+            placeholderTextColor="#94a3b8"
+          />
+        </View>
 
-      <View style={styles.macrosSection}>
-        <Text style={styles.macrosSectionTitle}>栄養素（任意）</Text>
+        <Text style={styles.macrosLabel}>PFC（タンパク質・脂質・炭水化物）</Text>
         <View style={styles.macrosGrid}>
-          <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text style={styles.inputLabel}>タンパク質 (g)</Text>
+          <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
+            <Text style={styles.inputLabel}>P (g)</Text>
             <TextInput
               style={styles.textInput}
               value={protein}
@@ -314,24 +316,24 @@ export default function MealRecordScreen() {
             />
           </View>
 
-          <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text style={styles.inputLabel}>炭水化物 (g)</Text>
+          <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
+            <Text style={styles.inputLabel}>F (g)</Text>
             <TextInput
               style={styles.textInput}
-              value={carbs}
-              onChangeText={setCarbs}
+              value={fat}
+              onChangeText={setFat}
               keyboardType="numeric"
               placeholder="0"
               placeholderTextColor="#94a3b8"
             />
           </View>
 
-          <View style={[styles.inputGroup, { flex: 1 }]}>
-            <Text style={styles.inputLabel}>脂質 (g)</Text>
+          <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
+            <Text style={styles.inputLabel}>C (g)</Text>
             <TextInput
               style={styles.textInput}
-              value={fat}
-              onChangeText={setFat}
+              value={carbs}
+              onChangeText={setCarbs}
               keyboardType="numeric"
               placeholder="0"
               placeholderTextColor="#94a3b8"
@@ -608,14 +610,25 @@ const styles = StyleSheet.create({
   activeMethodTabText: {
     color: '#ffffff',
   },
-  macrosSection: {
-    marginTop: 8,
+  nutritionSection: {
+    backgroundColor: '#1a1a2e',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#374151',
   },
-  macrosSectionTitle: {
+  nutritionSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: 16,
+  },
+  macrosLabel: {
+    fontSize: 14,
+    fontWeight: '500',
     color: Colors.textSecondary,
     marginBottom: 12,
+    marginTop: 8,
   },
   macrosGrid: {
     flexDirection: 'row',
