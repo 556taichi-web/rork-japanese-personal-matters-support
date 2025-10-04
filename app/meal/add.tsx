@@ -21,6 +21,7 @@ import {
   Apple
 } from 'lucide-react-native';
 import { useCreateNutritionLog } from '@/lib/hooks/useNutrition';
+import { Colors } from '@/constants/colors';
 
 type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
@@ -47,28 +48,28 @@ export default function AddMealScreen() {
       type: 'breakfast',
       name: '朝食',
       icon: <Sun size={20} color="#F59E0B" />,
-      color: '#FEF3C7',
+      color: '#F59E0B',
       entries: []
     },
     {
       type: 'lunch',
       name: '昼食',
       icon: <Coffee size={20} color="#EF4444" />,
-      color: '#FEE2E2',
+      color: '#EF4444',
       entries: []
     },
     {
       type: 'dinner',
       name: '夕食',
       icon: <Moon size={20} color="#8B5CF6" />,
-      color: '#EDE9FE',
+      color: '#8B5CF6',
       entries: []
     },
     {
       type: 'snack',
       name: 'おやつ',
       icon: <Apple size={20} color="#10B981" />,
-      color: '#D1FAE5',
+      color: '#10B981',
       entries: []
     }
   ]);
@@ -183,7 +184,7 @@ export default function AddMealScreen() {
               {isLoading ? (
                 <ActivityIndicator size="small" color="#FF6B9D" />
               ) : (
-                <Save size={24} color="#FF6B9D" />
+                <Save size={24} color={Colors.primary} />
               )}
             </TouchableOpacity>
           )
@@ -218,7 +219,7 @@ export default function AddMealScreen() {
                 style={styles.addMealButton}
                 onPress={() => addMealEntry(meal.type)}
               >
-                <Plus size={20} color="#FF6B9D" />
+                <Plus size={20} color={Colors.primary} />
               </TouchableOpacity>
             </View>
 
@@ -298,7 +299,7 @@ export default function AddMealScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
@@ -315,23 +316,29 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
     marginBottom: 8,
   },
   dateInput: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border,
+    color: Colors.textPrimary,
   },
   caloriesCard: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.primary,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     marginBottom: 24,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   caloriesLabel: {
     fontSize: 16,
@@ -344,15 +351,17 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   mealSection: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    shadowColor: Colors.shadowDark,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
   },
   mealHeader: {
     flexDirection: 'row',
@@ -366,18 +375,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    opacity: 0.2,
   },
   mealName: {
     flex: 1,
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.textPrimary,
   },
   addMealButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FFF1F5',
+    backgroundColor: Colors.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -387,13 +397,15 @@ const styles = StyleSheet.create({
   },
   emptyMealText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: Colors.textTertiary,
   },
   mealEntry: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: Colors.surfaceSecondary,
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   entryRow: {
     flexDirection: 'row',
@@ -401,12 +413,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   entryInput: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.background,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border,
+    color: Colors.textPrimary,
   },
   foodNameInput: {
     flex: 1,
@@ -416,7 +429,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.error + '20',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -430,61 +443,66 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   quantityInput: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.background,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border,
     flex: 1,
     marginRight: 8,
     textAlign: 'center',
+    color: Colors.textPrimary,
   },
   unitInput: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.background,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border,
     width: 60,
     textAlign: 'center',
+    color: Colors.textPrimary,
   },
   caloriesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   caloriesInput: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.background,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border,
     width: 80,
     textAlign: 'center',
     marginRight: 4,
+    color: Colors.textPrimary,
   },
   caloriesUnit: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.textSecondary,
     fontWeight: '500',
   },
   tipCard: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: Colors.warning + '20',
     borderRadius: 12,
     padding: 16,
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: Colors.warning + '30',
   },
   tipTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#92400E',
+    color: Colors.warning,
     marginBottom: 8,
   },
   tipText: {
     fontSize: 14,
-    color: '#92400E',
+    color: Colors.textSecondary,
     lineHeight: 20,
   },
 });
