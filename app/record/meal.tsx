@@ -286,59 +286,61 @@ export default function MealRecordScreen() {
           </ScrollView>
         </View>
       </View>
+    </View>
+  );
 
-      <View style={styles.nutritionSection}>
-        <Text style={styles.nutritionSectionTitle}>栄養情報（任意）</Text>
-        
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>カロリー (kcal)</Text>
+  const renderNutritionInput = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>栄養情報（任意）</Text>
+      
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>カロリー (kcal)</Text>
+        <TextInput
+          style={styles.textInput}
+          value={calories}
+          onChangeText={setCalories}
+          keyboardType="numeric"
+          placeholder="例: 500"
+          placeholderTextColor="#94a3b8"
+        />
+      </View>
+
+      <Text style={styles.macrosLabel}>PFC（タンパク質・脂質・炭水化物）</Text>
+      <View style={styles.macrosGrid}>
+        <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
+          <Text style={styles.inputLabel}>P (g)</Text>
           <TextInput
             style={styles.textInput}
-            value={calories}
-            onChangeText={setCalories}
+            value={protein}
+            onChangeText={setProtein}
             keyboardType="numeric"
-            placeholder="例: 500"
+            placeholder="0"
             placeholderTextColor="#94a3b8"
           />
         </View>
 
-        <Text style={styles.macrosLabel}>PFC（タンパク質・脂質・炭水化物）</Text>
-        <View style={styles.macrosGrid}>
-          <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
-            <Text style={styles.inputLabel}>P (g)</Text>
-            <TextInput
-              style={styles.textInput}
-              value={protein}
-              onChangeText={setProtein}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor="#94a3b8"
-            />
-          </View>
+        <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
+          <Text style={styles.inputLabel}>F (g)</Text>
+          <TextInput
+            style={styles.textInput}
+            value={fat}
+            onChangeText={setFat}
+            keyboardType="numeric"
+            placeholder="0"
+            placeholderTextColor="#94a3b8"
+          />
+        </View>
 
-          <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
-            <Text style={styles.inputLabel}>F (g)</Text>
-            <TextInput
-              style={styles.textInput}
-              value={fat}
-              onChangeText={setFat}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor="#94a3b8"
-            />
-          </View>
-
-          <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
-            <Text style={styles.inputLabel}>C (g)</Text>
-            <TextInput
-              style={styles.textInput}
-              value={carbs}
-              onChangeText={setCarbs}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor="#94a3b8"
-            />
-          </View>
+        <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
+          <Text style={styles.inputLabel}>C (g)</Text>
+          <TextInput
+            style={styles.textInput}
+            value={carbs}
+            onChangeText={setCarbs}
+            keyboardType="numeric"
+            placeholder="0"
+            placeholderTextColor="#94a3b8"
+          />
         </View>
       </View>
     </View>
@@ -403,6 +405,7 @@ export default function MealRecordScreen() {
             
             {renderMealTypeSelection()}
             {renderFoodInput()}
+            {renderNutritionInput()}
             {renderSaveButton()}
           </>
         )}
@@ -610,19 +613,7 @@ const styles = StyleSheet.create({
   activeMethodTabText: {
     color: '#ffffff',
   },
-  nutritionSection: {
-    backgroundColor: '#1a1a2e',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  nutritionSectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: 16,
-  },
+
   macrosLabel: {
     fontSize: 14,
     fontWeight: '500',
