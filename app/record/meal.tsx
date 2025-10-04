@@ -12,8 +12,8 @@ import {
 import { router } from 'expo-router';
 import { ArrowLeft, Camera, PenTool, Save } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { trpc } from '@/lib/trpc';
 import { supabase } from '@/lib/supabase';
+import { Colors } from '@/constants/colors';
 
 type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
@@ -27,13 +27,11 @@ export default function MealRecordScreen() {
   const [imageUri, setImageUri] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const createNutritionLogMutation = trpc.nutrition.create.useMutation();
-
   const mealTypes: { key: MealType; label: string; color: string }[] = [
-    { key: 'breakfast', label: '朝食', color: '#FED7AA' },
-    { key: 'lunch', label: '昼食', color: '#FBBF24' },
-    { key: 'dinner', label: '夕食', color: '#F87171' },
-    { key: 'snack', label: '間食', color: '#A78BFA' },
+    { key: 'breakfast', label: '朝食', color: Colors.warning },
+    { key: 'lunch', label: '昼食', color: Colors.secondary },
+    { key: 'dinner', label: '夕食', color: Colors.error },
+    { key: 'snack', label: '間食', color: Colors.accent },
   ];
 
   const commonUnits = ['人前', 'g', 'ml', '個', '切れ', '杯'];
@@ -123,73 +121,46 @@ export default function MealRecordScreen() {
     try {
       setIsLoading(true);
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Alert.alert('エラー', 'ログインが必要です。');
+        return;
+      }
+
       const mealData = {
+        user_id: user.id,
         date: new Date().toISOString().split('T')[0],
         meal_type: selectedMealType,
         food_name: foodName.trim(),
         quantity: quantityNum,
         unit: unit,
-        calories: calories ? parseFloat(calories) : undefined,
-        image_url: imageUri || undefined,
+        calories: calories ? parseFloat(calories) : null,
+        image_url: imageUri || null,
       };
 
       console.log('Saving meal data:', mealData);
       
-      // Try to save via tRPC first
-      try {
-        const result = await createNutritionLogMutation.mutateAsync(mealData);
-        console.log('Meal saved successfully via tRPC:', result);
-        
-        Alert.alert('保存完了', '食事記録が保存されました。', [
-          { text: 'OK', onPress: () => router.back() }
-        ]);
-        return;
-      } catch (trpcError: any) {
-        console.log('tRPC failed, trying direct Supabase:', trpcError);
-        
-        // Fallback to direct Supabase insertion
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error('ログインが必要です。');
-        }
-        
-        const { data, error } = await (supabase as any)
-          .from('nutrition_logs')
-          .insert({
-            user_id: user.id,
-            date: mealData.date,
-            meal_type: mealData.meal_type,
-            food_name: mealData.food_name,
-            quantity: mealData.quantity,
-            unit: mealData.unit,
-            calories: mealData.calories || null,
-            image_url: mealData.image_url || null,
-          })
-          .select()
-          .single();
-        
-        if (error) {
-          throw new Error(`データベースエラー: ${error.message}`);
-        }
-        
-        console.log('Meal saved successfully via direct Supabase:', data);
-        Alert.alert('保存完了', '食事記録が保存されました。', [
-          { text: 'OK', onPress: () => router.back() }
-        ]);
+      const { data, error } = await (supabase as any)
+        .from('nutrition_logs')
+        .insert(mealData)
+        .select()
+        .single();
+      
+      if (error) {
+        throw new Error(`データベースエラー: ${error.message}`);
       }
+      
+      console.log('Meal saved successfully:', data);
+      Alert.alert('保存完了', '食事記録が保存されました。', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
     } catch (error: any) {
       console.error('Error saving meal record:', error);
       
       let errorMessage = '食事記録の保存に失敗しました。';
       
       if (error?.message) {
-        if (error.message.includes('Server returned HTML')) {
-          errorMessage = 'サーバーに接続できません。直接データベースに保存を試みます。';
-        } else if (error.message.includes('UNAUTHORIZED') || error.message.includes('ログインが必要')) {
-          errorMessage = 'ログインが必要です。再度ログインしてください。';
-        } else {
-          errorMessage = `エラー: ${error.message}`;
-        }
+        errorMessage = `エラー: ${error.message}`;
       }
       
       Alert.alert('エラー', errorMessage);
@@ -207,7 +178,7 @@ export default function MealRecordScreen() {
           onPress={() => handleMethodSelect('manual')}
         >
           <View style={styles.methodIcon}>
-            <PenTool size={48} color="#FF6B9D" />
+            <PenTool size={48} color={Colors.primary} />
           </View>
           <Text style={styles.methodTitle}>手動で記録</Text>
           <Text style={styles.methodDescription}>
@@ -220,7 +191,7 @@ export default function MealRecordScreen() {
           onPress={() => handleMethodSelect('photo')}
         >
           <View style={styles.methodIcon}>
-            <Camera size={48} color="#4ECDC4" />
+            <Camera size={48} color={Colors.secondary} />
           </View>
           <Text style={styles.methodTitle}>写真で記録</Text>
           <Text style={styles.methodDescription}>
@@ -338,7 +309,7 @@ export default function MealRecordScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#2D3748" />
+          <ArrowLeft size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>食事記録</Text>
         <View style={styles.placeholder} />
@@ -356,7 +327,7 @@ export default function MealRecordScreen() {
                 ]}
                 onPress={() => setRecordMethod('manual')}
               >
-                <PenTool size={16} color={recordMethod === 'manual' ? 'white' : '#718096'} />
+                <PenTool size={16} color={recordMethod === 'manual' ? 'white' : Colors.textMuted} />
                 <Text style={[
                   styles.methodTabText,
                   recordMethod === 'manual' && styles.activeMethodTabText,
@@ -370,7 +341,7 @@ export default function MealRecordScreen() {
                 ]}
                 onPress={() => handleMethodSelect('photo')}
               >
-                <Camera size={16} color={recordMethod === 'photo' ? 'white' : '#718096'} />
+                <Camera size={16} color={recordMethod === 'photo' ? 'white' : Colors.textMuted} />
                 <Text style={[
                   styles.methodTabText,
                   recordMethod === 'photo' && styles.activeMethodTabText,
@@ -391,7 +362,7 @@ export default function MealRecordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -399,9 +370,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'white',
+    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: Colors.border,
   },
   backButton: {
     padding: 8,
@@ -409,7 +380,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2D3748',
+    color: Colors.textPrimary,
   },
   placeholder: {
     width: 40,
@@ -424,31 +395,33 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2D3748',
+    color: Colors.textPrimary,
     marginBottom: 16,
   },
   methodContainer: {
     gap: 16,
   },
   methodCard: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: Colors.shadowDark,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
     elevation: 4,
   },
   methodIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#F7FAFC',
+    backgroundColor: Colors.surfaceSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -456,12 +429,12 @@ const styles = StyleSheet.create({
   methodTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2D3748',
+    color: Colors.textPrimary,
     marginBottom: 8,
   },
   methodDescription: {
     fontSize: 14,
-    color: '#718096',
+    color: Colors.textTertiary,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -478,12 +451,13 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   selectedMealType: {
-    borderColor: '#2D3748',
+    borderColor: Colors.textPrimary,
+    borderWidth: 3,
   },
   mealTypeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2D3748',
+    color: Colors.textPrimary,
   },
   inputGroup: {
     marginBottom: 16,
@@ -491,17 +465,18 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#4A5568',
+    color: Colors.textSecondary,
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     textAlignVertical: 'top',
+    color: Colors.textPrimary,
   },
   row: {
     flexDirection: 'row',
@@ -512,20 +487,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   unitChip: {
-    backgroundColor: '#F7FAFC',
+    backgroundColor: Colors.surfaceSecondary,
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
   },
   selectedUnit: {
-    backgroundColor: '#FF6B9D',
-    borderColor: '#FF6B9D',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   unitText: {
     fontSize: 14,
-    color: '#4A5568',
+    color: Colors.textSecondary,
   },
   selectedUnitText: {
     color: 'white',
@@ -534,11 +509,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#10B981',
+    backgroundColor: Colors.success,
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
     gap: 8,
+    shadowColor: Colors.shadowDark,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   saveButtonText: {
     fontSize: 16,
@@ -547,7 +530,7 @@ const styles = StyleSheet.create({
   },
   methodSwitcher: {
     flexDirection: 'row',
-    backgroundColor: '#F7FAFC',
+    backgroundColor: Colors.surfaceSecondary,
     borderRadius: 12,
     padding: 4,
     marginBottom: 24,
@@ -563,12 +546,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   activeMethodTab: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.primary,
   },
   methodTabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#718096',
+    color: Colors.textMuted,
   },
   activeMethodTabText: {
     color: 'white',
