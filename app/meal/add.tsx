@@ -31,6 +31,9 @@ interface MealEntry {
   quantity: number;
   unit: string;
   calories?: number;
+  protein_g?: number;
+  carbs_g?: number;
+  fat_g?: number;
 }
 
 interface MealSection {
@@ -83,7 +86,10 @@ export default function AddMealScreen() {
       food_name: '',
       quantity: 1,
       unit: '個',
-      calories: 0
+      calories: 0,
+      protein_g: 0,
+      carbs_g: 0,
+      fat_g: 0
     };
 
     setMeals(prevMeals => 
@@ -148,7 +154,10 @@ export default function AddMealScreen() {
           food_name: entry.food_name,
           quantity: entry.quantity,
           unit: entry.unit,
-          calories: entry.calories || 0
+          calories: entry.calories || 0,
+          protein_g: entry.protein_g || 0,
+          carbs_g: entry.carbs_g || 0,
+          fat_g: entry.fat_g || 0
         });
       }
       Alert.alert('成功', '食事記録が保存されました', [
@@ -275,6 +284,47 @@ export default function AddMealScreen() {
                         placeholderTextColor="#9CA3AF"
                       />
                       <Text style={styles.caloriesUnit}>kcal</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.pfcRow}>
+                    <View style={styles.pfcInputContainer}>
+                      <Text style={styles.pfcLabel}>P</Text>
+                      <TextInput
+                        style={styles.pfcInput}
+                        value={entry.protein_g?.toString() || ''}
+                        onChangeText={(value) => updateMealEntry(meal.type, entry.id, 'protein_g', parseFloat(value) || 0)}
+                        placeholder="0"
+                        keyboardType="numeric"
+                        placeholderTextColor="#9CA3AF"
+                      />
+                      <Text style={styles.pfcUnit}>g</Text>
+                    </View>
+
+                    <View style={styles.pfcInputContainer}>
+                      <Text style={styles.pfcLabel}>F</Text>
+                      <TextInput
+                        style={styles.pfcInput}
+                        value={entry.fat_g?.toString() || ''}
+                        onChangeText={(value) => updateMealEntry(meal.type, entry.id, 'fat_g', parseFloat(value) || 0)}
+                        placeholder="0"
+                        keyboardType="numeric"
+                        placeholderTextColor="#9CA3AF"
+                      />
+                      <Text style={styles.pfcUnit}>g</Text>
+                    </View>
+
+                    <View style={styles.pfcInputContainer}>
+                      <Text style={styles.pfcLabel}>C</Text>
+                      <TextInput
+                        style={styles.pfcInput}
+                        value={entry.carbs_g?.toString() || ''}
+                        onChangeText={(value) => updateMealEntry(meal.type, entry.id, 'carbs_g', parseFloat(value) || 0)}
+                        placeholder="0"
+                        keyboardType="numeric"
+                        placeholderTextColor="#9CA3AF"
+                      />
+                      <Text style={styles.pfcUnit}>g</Text>
                     </View>
                   </View>
                 </View>
@@ -504,5 +554,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     lineHeight: 20,
+  },
+  pfcRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    gap: 8,
+  },
+  pfcInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  pfcLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginRight: 4,
+    width: 12,
+  },
+  pfcInput: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    padding: 4,
+  },
+  pfcUnit: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginLeft: 2,
   },
 });
