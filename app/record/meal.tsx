@@ -307,40 +307,49 @@ export default function MealRecordScreen() {
 
       <Text style={styles.macrosLabel}>PFC（タンパク質・脂質・炭水化物）</Text>
       <View style={styles.macrosGrid}>
-        <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
-          <Text style={styles.inputLabel}>P (g)</Text>
-          <TextInput
-            style={styles.textInput}
-            value={protein}
-            onChangeText={setProtein}
-            keyboardType="numeric"
-            placeholder="0"
-            placeholderTextColor="#94a3b8"
-          />
+        <View style={styles.macroInputWrapper}>
+          <Text style={styles.inputLabel}>P</Text>
+          <View style={styles.macroInputContainer}>
+            <TextInput
+              style={styles.macroInput}
+              value={protein}
+              onChangeText={setProtein}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor="#94a3b8"
+            />
+            <Text style={styles.macroUnit}>g</Text>
+          </View>
         </View>
 
-        <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
-          <Text style={styles.inputLabel}>F (g)</Text>
-          <TextInput
-            style={styles.textInput}
-            value={fat}
-            onChangeText={setFat}
-            keyboardType="numeric"
-            placeholder="0"
-            placeholderTextColor="#94a3b8"
-          />
+        <View style={styles.macroInputWrapper}>
+          <Text style={styles.inputLabel}>F</Text>
+          <View style={styles.macroInputContainer}>
+            <TextInput
+              style={styles.macroInput}
+              value={fat}
+              onChangeText={setFat}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor="#94a3b8"
+            />
+            <Text style={styles.macroUnit}>g</Text>
+          </View>
         </View>
 
-        <View style={[styles.inputGroup, { flex: 1, marginBottom: 0 }]}>
-          <Text style={styles.inputLabel}>C (g)</Text>
-          <TextInput
-            style={styles.textInput}
-            value={carbs}
-            onChangeText={setCarbs}
-            keyboardType="numeric"
-            placeholder="0"
-            placeholderTextColor="#94a3b8"
-          />
+        <View style={styles.macroInputWrapper}>
+          <Text style={styles.inputLabel}>C</Text>
+          <View style={styles.macroInputContainer}>
+            <TextInput
+              style={styles.macroInput}
+              value={carbs}
+              onChangeText={setCarbs}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor="#94a3b8"
+            />
+            <Text style={styles.macroUnit}>g</Text>
+          </View>
         </View>
       </View>
     </View>
@@ -624,5 +633,28 @@ const styles = StyleSheet.create({
   macrosGrid: {
     flexDirection: 'row',
     gap: 12,
+  },
+  macroInputWrapper: {
+    flex: 1,
+  },
+  macroInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a2e',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#374151',
+    paddingRight: 12,
+  },
+  macroInput: {
+    flex: 1,
+    padding: 16,
+    fontSize: 16,
+    color: '#ffffff',
+  },
+  macroUnit: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
   },
 });
