@@ -645,16 +645,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#374151',
     paddingRight: 12,
+    overflow: 'hidden',
   },
   macroInput: {
     flex: 1,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     fontSize: 16,
     color: '#ffffff',
+    minWidth: 0,
   },
   macroUnit: {
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
+    marginLeft: 4,
   },
 });
