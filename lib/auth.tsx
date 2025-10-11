@@ -17,6 +17,11 @@ export interface AuthState {
   logout: () => Promise<void>;
 }
 
+export const getAuthToken = async (): Promise<string | null> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token || null;
+};
+
 export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);

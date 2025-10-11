@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { initializePostHog } from "@/lib/analytics";
 import { initializeSentry } from "@/lib/sentry";
 import { AuthProvider } from "@/lib/auth";
+import { trpc, getTRPCClientOptions } from "@/lib/trpc";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -24,6 +25,8 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const [trpcClient] = React.useState(() => trpc.createClient(getTRPCClientOptions()));
+
   useEffect(() => {
     const initializeServices = async () => {
       initializeSentry();
@@ -35,12 +38,14 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <GestureHandlerRootView>
-          <RootLayoutNav />
-        </GestureHandlerRootView>
-      </AuthProvider>
-    </QueryClientProvider>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <GestureHandlerRootView>
+            <RootLayoutNav />
+          </GestureHandlerRootView>
+        </AuthProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 }

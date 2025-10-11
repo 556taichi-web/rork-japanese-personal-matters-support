@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { 
@@ -22,6 +21,7 @@ import {
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/colors';
+import { trpc } from '@/lib/trpc';
 
 interface Message {
   id: string;
@@ -48,6 +48,9 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [userContext, setUserContext] = useState<any>(null);
+
+  const userContextQuery = trpc?.chat.getUserContext.useQuery();
 
   const quickQuestions: QuickQuestion[] = [
     {
@@ -67,6 +70,77 @@ export default function ChatScreen() {
     }
   ];
 
+  useEffect(() => {
+    if (userContextQuery.data) {
+      setUserContext(userContextQuery.data);
+    }
+  }, [userContextQuery.data]);
+
+  const buildSystemPrompt = () => {
+    if (!userContext) {
+      return 'あなたは親しみやすく、専門的なAIパーソナルトレーナーです。20-30代女性向けに、健康、フィットネス、ダイエット、栄養に関するアドバイスを日本語で提供してください。親しみやすい口調で、実践的で安全なアドバイスを心がけてください。';
+    }
+
+    const { profile, workoutStats, nutritionStats } = userContext;
+    
+    let contextInfo = 'あなたは親しみやすく、専門的なAIパーソナルトレーナーです。以下のユーザー情報を参考に、パーソナライズされたアドバイスを日本語で提供してください。\n\n';
+    
+    if (profile) {
+      contextInfo += `【ユーザープロフィール】\n`;
+      if (profile.name) contextInfo += `名前: ${profile.name}\n`;
+      if (profile.age) contextInfo += `年齢: ${profile.age}歳\n`;
+      if (profile.height) contextInfo += `身長: ${profile.height}cm\n`;
+      if (profile.weight) contextInfo += `体重: ${profile.weight}kg\n`;
+      if (profile.target_weight) contextInfo += `目標体重: ${profile.target_weight}kg\n`;
+      if (profile.daily_calorie_goal) contextInfo += `1日のカロリー目標: ${profile.daily_calorie_goal}kcal\n`;
+      if (profile.daily_protein_goal) contextInfo += `1日のタンパク質目標: ${profile.daily_protein_goal}g\n`;
+      if (profile.daily_fat_goal) contextInfo += `1日の脂質目標: ${profile.daily_fat_goal}g\n`;
+      if (profile.daily_carbs_goal) contextInfo += `1日の炭水化物目標: ${profile.daily_carbs_goal}g\n`;
+      contextInfo += '\n';
+    }
+    
+    contextInfo += `【今日の栄養摂取状況】\n`;
+    contextInfo += `カロリー: ${nutritionStats.todayCalories}kcal`;
+    if (profile?.daily_calorie_goal) {
+      contextInfo += ` / ${profile.daily_calorie_goal}kcal (目標の${Math.round(nutritionStats.todayCalories / profile.daily_calorie_goal * 100)}%)`;
+    }
+    contextInfo += '\n';
+    contextInfo += `タンパク質: ${nutritionStats.todayProtein}g`;
+    if (profile?.daily_protein_goal) {
+      contextInfo += ` / ${profile.daily_protein_goal}g`;
+    }
+    contextInfo += '\n';
+    contextInfo += `脂質: ${nutritionStats.todayFat}g`;
+    if (profile?.daily_fat_goal) {
+      contextInfo += ` / ${profile.daily_fat_goal}g`;
+    }
+    contextInfo += '\n';
+    contextInfo += `炭水化物: ${nutritionStats.todayCarbs}g`;
+    if (profile?.daily_carbs_goal) {
+      contextInfo += ` / ${profile.daily_carbs_goal}g`;
+    }
+    contextInfo += '\n\n';
+    
+    contextInfo += `【運動履歴】\n`;
+    contextInfo += `過去30日間のワークアウト回数: ${workoutStats.totalWorkouts}回\n`;
+    if (workoutStats.lastWorkoutDate) {
+      contextInfo += `最後のワークアウト: ${workoutStats.lastWorkoutDate}\n`;
+    }
+    if (workoutStats.recentExercises.length > 0) {
+      contextInfo += `最近行った運動: ${workoutStats.recentExercises.slice(0, 5).join(', ')}\n`;
+    }
+    contextInfo += '\n';
+    
+    if (nutritionStats.avgDailyCalories > 0) {
+      contextInfo += `【過去30日間の平均】\n`;
+      contextInfo += `1日平均カロリー: ${nutritionStats.avgDailyCalories}kcal\n\n`;
+    }
+    
+    contextInfo += 'これらの情報を踏まえて、ユーザーに合わせた具体的で実践的なアドバイスを提供してください。親しみやすい口調で、安全で健康的な方法を心がけてください。';
+    
+    return contextInfo;
+  };
+
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
 
@@ -82,6 +156,8 @@ export default function ChatScreen() {
     setIsLoading(true);
 
     try {
+      const systemPrompt = buildSystemPrompt();
+      
       const response = await fetch('https://toolkit.rork.com/text/llm/', {
         method: 'POST',
         headers: {
@@ -91,7 +167,7 @@ export default function ChatScreen() {
           messages: [
             {
               role: 'system',
-              content: 'あなたは親しみやすく、専門的なAIパーソナルトレーナーです。20-30代女性向けに、健康、フィットネス、ダイエット、栄養に関するアドバイスを日本語で提供してください。親しみやすい口調で、実践的で安全なアドバイスを心がけてください。'
+              content: systemPrompt
             },
             {
               role: 'user',
