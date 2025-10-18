@@ -122,18 +122,25 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
       });
 
       if (error) {
-        console.error('Supabase auth error details:', {
+        console.error('Supabase auth error details:', JSON.stringify({
           message: error.message,
           status: error.status,
-          name: error.name
-        });
+          name: error.name,
+          code: (error as any).code
+        }, null, 2));
         
         // Provide more specific error messages
         let errorMessage = 'ログインに失敗しました';
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'メールアドレスまたはパスワードが正しくありません。\n\nテスト用アカウント:\nEmail: test@example.com\nPassword: password123';
-        } else if (error.message.includes('Email not confirmed')) {
+        const errorMsg = error.message || '';
+        
+        if (errorMsg.includes('Invalid login credentials') || errorMsg.includes('invalid_grant')) {
+          errorMessage = 'メールアドレスまたはパスワードが正しくありません。\n\nテスト用アカウント:\nメール: test@example.com\nパスワード: password123';
+        } else if (errorMsg.includes('Email not confirmed')) {
           errorMessage = 'メールアドレスの確認が必要です。メールをご確認ください。';
+        } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+          errorMessage = 'ネットワークエラーが発生しました。接続を確認してください。';
+        } else if (errorMsg) {
+          errorMessage = `ログインに失敗しました: ${errorMsg}`;
         }
         
         throw new Error(errorMessage);

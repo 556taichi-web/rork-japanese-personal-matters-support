@@ -32,10 +32,14 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
+      console.log('Starting login process...');
       await login(email.trim(), password);
+      console.log('Login successful, navigating to home...');
       router.replace('/(tabs)/home');
     } catch (error) {
-      Alert.alert('ログインエラー', error instanceof Error ? error.message : 'ログインに失敗しました');
+      console.error('Login error in component:', error);
+      const errorMessage = error instanceof Error ? error.message : 'ログインに失敗しました';
+      Alert.alert('ログインエラー', errorMessage);
     } finally {
       setIsLoading(false);
     }
