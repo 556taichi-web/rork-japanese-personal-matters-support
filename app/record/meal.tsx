@@ -146,9 +146,19 @@ export default function MealRecordScreen() {
       await createNutritionMutation.mutateAsync(mealData);
       
       console.log('Meal saved successfully');
-      Alert.alert('保存完了', '食事記録が保存されました。', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      setIsLoading(false);
+      
+      Alert.alert(
+        '✓ 保存完了',
+        '食事記録が正常に保存されました。',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.back(),
+            style: 'default'
+          }
+        ]
+      );
     } catch (error: any) {
       console.error('Error saving meal record:', error);
       
@@ -161,7 +171,6 @@ export default function MealRecordScreen() {
       }
       
       Alert.alert('エラー', errorMessage);
-    } finally {
       setIsLoading(false);
     }
   };
