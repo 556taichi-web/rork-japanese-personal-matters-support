@@ -22,7 +22,7 @@ export const appRouter = createTRPCRouter({
   }),
   nutrition: createTRPCRouter({
     logs: getNutritionLogsProcedure,
-    create: createNutritionLogProcedure,
+    createNutritionLog: createNutritionLogProcedure,
   }),
   chat: createTRPCRouter({
     getUserContext: getUserContextProcedure,

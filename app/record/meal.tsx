@@ -7,17 +7,18 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  SafeAreaView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, Camera, PenTool, Save } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { supabase } from '@/lib/supabase';
+import { trpc } from '@/lib/trpc';
 import { Colors } from '@/constants/colors';
 
 type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 export default function MealRecordScreen() {
+  const insets = useSafeAreaInsets();
   const [recordMethod, setRecordMethod] = useState<'photo' | 'manual' | null>('manual');
   const [selectedMealType, setSelectedMealType] = useState<MealType>('breakfast');
   const [foodName, setFoodName] = useState<string>('');
@@ -109,6 +110,8 @@ export default function MealRecordScreen() {
     }
   };
 
+  const createNutritionMutation = trpc.nutrition.createNutritionLog.useMutation();
+
   const saveMealRecord = async () => {
     if (!foodName.trim()) {
       Alert.alert('エラー', '食事内容を入力してください。');
@@ -123,40 +126,26 @@ export default function MealRecordScreen() {
 
     try {
       setIsLoading(true);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        Alert.alert('エラー', 'ログインが必要です。');
-        return;
-      }
+      console.log('Saving meal data...');
 
       const mealData = {
-        user_id: user.id,
         date: new Date().toISOString().split('T')[0],
         meal_type: selectedMealType,
         food_name: foodName.trim(),
         quantity: quantityNum,
         unit: unit,
-        calories: calories ? parseFloat(calories) : null,
-        protein_g: protein ? parseFloat(protein) : null,
-        carbs_g: carbs ? parseFloat(carbs) : null,
-        fat_g: fat ? parseFloat(fat) : null,
-        image_url: imageUri || null,
+        calories: calories ? parseFloat(calories) : undefined,
+        protein_g: protein ? parseFloat(protein) : undefined,
+        carbs_g: carbs ? parseFloat(carbs) : undefined,
+        fat_g: fat ? parseFloat(fat) : undefined,
+        image_url: imageUri || undefined,
       };
 
-      console.log('Saving meal data:', mealData);
+      console.log('Meal data to save:', mealData);
+
+      await createNutritionMutation.mutateAsync(mealData);
       
-      const { data, error } = await (supabase as any)
-        .from('nutrition_logs')
-        .insert(mealData)
-        .select()
-        .single();
-      
-      if (error) {
-        throw new Error(`データベースエラー: ${error.message}`);
-      }
-      
-      console.log('Meal saved successfully:', data);
+      console.log('Meal saved successfully');
       Alert.alert('保存完了', '食事記録が保存されました。', [
         { text: 'OK', onPress: () => router.back() }
       ]);
@@ -167,6 +156,8 @@ export default function MealRecordScreen() {
       
       if (error?.message) {
         errorMessage = `エラー: ${error.message}`;
+      } else if (error?.data?.zodError) {
+        errorMessage = `入力エラー: ${JSON.stringify(error.data.zodError)}`;
       }
       
       Alert.alert('エラー', errorMessage);
@@ -369,7 +360,7 @@ export default function MealRecordScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color={Colors.textPrimary} />
@@ -419,7 +410,7 @@ export default function MealRecordScreen() {
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
