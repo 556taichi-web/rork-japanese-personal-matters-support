@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Platform,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -30,6 +32,7 @@ export default function MealRecordScreen() {
   const [fat, setFat] = useState<string>('');
   const [imageUri, setImageUri] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
 
   const mealTypes: { key: MealType; label: string; color: string }[] = [
     { key: 'breakfast', label: '朝食', color: '#f59e0b' },
@@ -148,17 +151,21 @@ export default function MealRecordScreen() {
       console.log('Meal saved successfully');
       setIsLoading(false);
       
-      Alert.alert(
-        '✓ 保存完了',
-        '食事記録が正常に保存されました。',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-            style: 'default'
-          }
-        ]
-      );
+      if (Platform.OS === 'web') {
+        setShowSuccessModal(true);
+      } else {
+        Alert.alert(
+          '✓ 保存完了',
+          '食事記録が正常に保存されました。',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.back(),
+              style: 'default'
+            }
+          ]
+        );
+      }
     } catch (error: any) {
       console.error('Error saving meal record:', error);
       
@@ -419,6 +426,32 @@ export default function MealRecordScreen() {
           </>
         )}
       </ScrollView>
+
+      <Modal
+        transparent
+        visible={showSuccessModal}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowSuccessModal(false);
+          router.back();
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>✓ 保存完了</Text>
+            <Text style={styles.modalMessage}>食事記録が正常に保存されました。</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                setShowSuccessModal(false);
+                router.back();
+              }}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -664,5 +697,46 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginLeft: 2,
     flexShrink: 0,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#1a1a2e',
+    borderRadius: 16,
+    padding: 24,
+    width: '80%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: '#374151',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#10b981',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  modalButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });
