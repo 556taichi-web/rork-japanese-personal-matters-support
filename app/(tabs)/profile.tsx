@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Edit3, Save, LogOut, Settings } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { useAuth } from '@/lib/auth';
 import { useProfile } from '@/lib/hooks/useProfile';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -91,7 +92,20 @@ export default function ProfileScreen() {
       'ログアウトしますか？',
       [
         { text: 'キャンセル', style: 'cancel' },
-        { text: 'ログアウト', style: 'destructive', onPress: logout },
+        {
+          text: 'ログアウト',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              Alert.alert('成功', 'ログアウトしました');
+              router.replace('/auth/login');
+            } catch (error) {
+              Alert.alert('エラー', 'ログアウトに失敗しました');
+              console.error('Logout error:', error);
+            }
+          },
+        },
       ]
     );
   };
