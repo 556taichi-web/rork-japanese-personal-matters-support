@@ -97,11 +97,11 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('Logging out...');
               await logout();
-              router.replace('/auth/login');
-              setTimeout(() => {
-                Alert.alert('成功', 'ログアウトしました');
-              }, 100);
+              console.log('Logout successful, navigating to login...');
+              router.replace('/auth/login' as any);
+              console.log('Navigation completed');
             } catch (error) {
               console.error('Logout error:', error);
               Alert.alert('エラー', 'ログアウトに失敗しました');
