@@ -98,11 +98,13 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               await logout();
-              Alert.alert('成功', 'ログアウトしました');
               router.replace('/auth/login');
+              setTimeout(() => {
+                Alert.alert('成功', 'ログアウトしました');
+              }, 100);
             } catch (error) {
-              Alert.alert('エラー', 'ログアウトに失敗しました');
               console.error('Logout error:', error);
+              Alert.alert('エラー', 'ログアウトに失敗しました');
             }
           },
         },

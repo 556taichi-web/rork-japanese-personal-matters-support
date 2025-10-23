@@ -222,12 +222,13 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Logout error:', error);
-      } else {
-        console.log('User logged out successfully');
+        throw error;
       }
+      console.log('User logged out successfully');
       setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
+      throw error;
     }
   }, []);
 
