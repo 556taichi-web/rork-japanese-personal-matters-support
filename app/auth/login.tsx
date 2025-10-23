@@ -5,15 +5,16 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, X } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 
 export default function LoginScreen() {
@@ -21,12 +22,36 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorVisible, setErrorVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [fadeAnim] = useState(new Animated.Value(0));
   const { login } = useAuth();
   const router = useRouter();
 
+  const showError = (message: string) => {
+    setErrorMessage(message);
+    setErrorVisible(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const hideError = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setErrorVisible(false);
+      setErrorMessage('');
+    });
+  };
+
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('エラー', 'メールアドレスとパスワードを入力してください');
+      showError('メールアドレスとパスワードを入力してください');
       return;
     }
 
@@ -38,8 +63,24 @@ export default function LoginScreen() {
       router.replace('/(tabs)/home');
     } catch (error) {
       console.error('Login error in component:', error);
-      const errorMessage = error instanceof Error ? error.message : 'ログインに失敗しました';
-      Alert.alert('ログインエラー', errorMessage);
+      let message = 'ログインに失敗しました';
+      
+      if (error instanceof Error) {
+        const errorMsg = error.message;
+        if (errorMsg.includes('メールアドレスまたはパスワードが正しくありません')) {
+          message = 'メールアドレスまたはパスワードが正しくありません';
+        } else if (errorMsg.includes('Invalid login credentials')) {
+          message = 'メールアドレスまたはパスワードが正しくありません';
+        } else if (errorMsg.includes('Invalid API key')) {
+          message = 'システムエラーが発生しました。管理者にお問い合わせください。';
+        } else if (errorMsg.includes('ネットワークエラー')) {
+          message = 'ネットワークエラーが発生しました。接続を確認してください。';
+        } else {
+          message = errorMsg;
+        }
+      }
+      
+      showError(message);
     } finally {
       setIsLoading(false);
     }
@@ -63,6 +104,33 @@ export default function LoginScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
+            <Modal
+              visible={errorVisible}
+              transparent
+              animationType="none"
+              onRequestClose={hideError}
+            >
+              <View style={styles.modalOverlay}>
+                <Animated.View style={[styles.errorPopup, { opacity: fadeAnim }]}>
+                  <View style={styles.errorHeader}>
+                    <View style={styles.errorIconContainer}>
+                      <AlertCircle size={24} color="#EF4444" />
+                    </View>
+                    <TouchableOpacity onPress={hideError} style={styles.closeButton}>
+                      <X size={24} color="#6B7280" />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.errorTitle}>ログインエラー</Text>
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                  <TouchableOpacity
+                    style={styles.errorButton}
+                    onPress={hideError}
+                  >
+                    <Text style={styles.errorButtonText}>閉じる</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              </View>
+            </Modal>
             <View style={styles.header}>
               <Text style={styles.title}>AIパーソナル</Text>
               <Text style={styles.subtitle}>あなた専用のフィットネスコーチ</Text>
@@ -256,5 +324,68 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontSize: 14,
     fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  errorPopup: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  errorHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  errorIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 12,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#6B7280',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  errorButton: {
+    backgroundColor: '#FF6B9D',
+    borderRadius: 12,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
