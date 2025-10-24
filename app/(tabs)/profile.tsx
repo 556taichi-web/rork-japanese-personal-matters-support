@@ -99,8 +99,8 @@ export default function ProfileScreen() {
             try {
               console.log('Logging out...');
               await logout();
-              console.log('Logout successful, navigating to login...');
-              router.replace('/auth/login' as any);
+              console.log('Logout successful, navigating to index...');
+              router.replace('/' as any);
               console.log('Navigation completed');
             } catch (error) {
               console.error('Logout error:', error);
