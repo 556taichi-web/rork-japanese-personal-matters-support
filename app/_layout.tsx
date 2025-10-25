@@ -29,9 +29,23 @@ export default function RootLayout() {
 
   useEffect(() => {
     const initializeServices = async () => {
-      initializeSentry();
-      await initializePostHog();
-      SplashScreen.hideAsync();
+      try {
+        initializeSentry();
+      } catch (error) {
+        console.error('Failed to initialize Sentry:', error);
+      }
+      
+      try {
+        await initializePostHog();
+      } catch (error) {
+        console.error('Failed to initialize PostHog:', error);
+      }
+      
+      try {
+        await SplashScreen.hideAsync();
+      } catch (error) {
+        console.error('Failed to hide splash screen:', error);
+      }
     };
     
     initializeServices();

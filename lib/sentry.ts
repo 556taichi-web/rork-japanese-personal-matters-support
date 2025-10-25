@@ -6,8 +6,8 @@ const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
 const APP_ENV = process.env.EXPO_PUBLIC_APP_ENV || 'development';
 
 export const initializeSentry = () => {
-  if (!SENTRY_DSN) {
-    console.log('Sentry: DSN not found, error tracking disabled');
+  if (!SENTRY_DSN || SENTRY_DSN.includes('dummy')) {
+    console.log('Sentry: DSN not found or is dummy DSN, error tracking disabled');
     return;
   }
 

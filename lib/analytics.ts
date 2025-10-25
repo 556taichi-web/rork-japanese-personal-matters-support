@@ -6,8 +6,8 @@ const POSTHOG_HOST = process.env.EXPO_PUBLIC_POSTHOG_HOST || 'https://app.postho
 let posthogInstance: PostHog | null = null;
 
 export const initializePostHog = async () => {
-  if (!POSTHOG_API_KEY) {
-    console.log('PostHog: API key not found, analytics disabled');
+  if (!POSTHOG_API_KEY || POSTHOG_API_KEY.includes('dummy')) {
+    console.log('PostHog: API key not found or is dummy key, analytics disabled');
     return null;
   }
 
@@ -20,6 +20,7 @@ export const initializePostHog = async () => {
     return posthogInstance;
   } catch (error) {
     console.error('PostHog: Failed to initialize analytics:', error);
+    posthogInstance = null;
     return null;
   }
 };
