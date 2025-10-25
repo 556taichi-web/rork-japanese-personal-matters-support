@@ -1,5 +1,6 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Platform } from 'react-native';
 import { supabase, type Profile } from './supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -218,26 +219,39 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
 
   const logout = useCallback(async () => {
     try {
-      console.log('Logging out user...');
+      console.log('=== Starting logout process ===');
       
-      // Clear user state first
-      setUser(null);
-      
-      // Then sign out from Supabase
-      const { error } = await supabase.auth.signOut({
-        scope: 'local'
-      });
+      // Step 1: Sign out from Supabase first
+      console.log('Step 1: Signing out from Supabase...');
+      const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('Logout error:', error);
-        // Don't throw error - user state is already cleared
-        // This ensures logout always works even if signOut fails
+        console.error('Supabase signOut error:', error);
+      } else {
+        console.log('Supabase signOut successful');
       }
       
-      console.log('User logged out successfully');
+      // Step 2: Clear local user state
+      console.log('Step 2: Clearing user state...');
+      setUser(null);
+      
+      // Step 3: Clear all AsyncStorage (optional but thorough)
+      if (Platform.OS !== 'web') {
+        try {
+          console.log('Step 3: Clearing AsyncStorage...');
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+          await AsyncStorage.clear();
+          console.log('AsyncStorage cleared');
+        } catch (storageError) {
+          console.error('Failed to clear AsyncStorage:', storageError);
+        }
+      }
+      
+      console.log('=== Logout process completed ===');
     } catch (error) {
-      console.error('Logout failed:', error);
-      // Don't rethrow - user state is already cleared
+      console.error('Logout failed with exception:', error);
+      setUser(null);
     }
   }, []);
 

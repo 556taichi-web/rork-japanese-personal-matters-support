@@ -8,6 +8,10 @@ export default function IndexPage() {
   const { user, isLoading: authLoading } = useAuth();
   const insets = useSafeAreaInsets();
 
+  React.useEffect(() => {
+    console.log('Index page: Auth state changed', { user: !!user, isLoading: authLoading });
+  }, [user, authLoading]);
+
   // Show loading while checking auth
   if (authLoading) {
     return (
@@ -22,10 +26,12 @@ export default function IndexPage() {
 
   // If user is authenticated, redirect to tabs
   if (user) {
+    console.log('Index page: Redirecting to home (user authenticated)');
     return <Redirect href="/(tabs)/home" />;
   }
   
   // If not authenticated, redirect to login
+  console.log('Index page: Redirecting to login (no user)');
   return <Redirect href="/auth/login" />;
 }
 

@@ -18,14 +18,17 @@ import { useProfile } from '@/lib/hooks/useProfile';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/colors';
+import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     age: '',
@@ -185,11 +188,19 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('Logging out...');
+              console.log('=== Profile: Starting logout ===');
+              setIsLoggingOut(true);
+              
               await logout();
-              console.log('Logout successful');
+              console.log('Profile: Logout completed, navigating to login...');
+              
+              router.replace('/auth/login');
+              console.log('Profile: Navigation to login completed');
             } catch (error) {
-              console.error('Logout error:', error);
+              console.error('Profile: Logout error:', error);
+              Alert.alert('エラー', 'ログアウトに失敗しました。もう一度お試しください。');
+            } finally {
+              setIsLoggingOut(false);
             }
           },
         },
@@ -367,9 +378,22 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <LogOut size={20} color="#EF4444" />
-            <Text style={styles.logoutText}>ログアウト</Text>
+          <TouchableOpacity 
+            style={[styles.logoutButton, isLoggingOut && styles.logoutButtonDisabled]} 
+            onPress={handleLogout}
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? (
+              <>
+                <ActivityIndicator size="small" color="#EF4444" />
+                <Text style={styles.logoutText}>ログアウト中...</Text>
+              </>
+            ) : (
+              <>
+                <LogOut size={20} color="#EF4444" />
+                <Text style={styles.logoutText}>ログアウト</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
         </ScrollView>
@@ -641,6 +665,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.error + '40',
     backgroundColor: Colors.error + '10',
+    gap: 8,
+  },
+  logoutButtonDisabled: {
+    opacity: 0.5,
   },
   logoutText: {
     fontSize: 16,
