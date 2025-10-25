@@ -99,9 +99,7 @@ export default function ProfileScreen() {
             try {
               console.log('Logging out...');
               await logout();
-              console.log('Logout successful, navigating to login...');
-              router.replace('/auth/login');
-              console.log('Navigation completed');
+              console.log('Logout successful');
             } catch (error) {
               console.error('Logout error:', error);
               Alert.alert('エラー', 'ログアウトに失敗しました');

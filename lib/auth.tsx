@@ -219,16 +219,25 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
   const logout = useCallback(async () => {
     try {
       console.log('Logging out user...');
-      const { error } = await supabase.auth.signOut();
+      
+      // Clear user state first
+      setUser(null);
+      
+      // Then sign out from Supabase
+      const { error } = await supabase.auth.signOut({
+        scope: 'local'
+      });
+      
       if (error) {
         console.error('Logout error:', error);
-        throw error;
+        // Don't throw error - user state is already cleared
+        // This ensures logout always works even if signOut fails
       }
+      
       console.log('User logged out successfully');
-      setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
-      throw error;
+      // Don't rethrow - user state is already cleared
     }
   }, []);
 
