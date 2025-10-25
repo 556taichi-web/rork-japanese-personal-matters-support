@@ -93,7 +93,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#FF6B9D', '#C147E9']}
+        colors={['#1a1a2e', '#16213e', '#0f3460']}
         style={styles.gradient}
       >
         <KeyboardAvoidingView
@@ -138,11 +138,11 @@ export default function LoginScreen() {
 
             <View style={styles.formContainer}>
               <View style={styles.inputContainer}>
-                <Mail size={20} color="#9CA3AF" style={styles.inputIcon} />
+                <Mail size={20} color="#94a3b8" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
                   placeholder="メールアドレス"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#94a3b8"
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -153,11 +153,11 @@ export default function LoginScreen() {
               </View>
 
               <View style={styles.inputContainer}>
-                <Lock size={20} color="#9CA3AF" style={styles.inputIcon} />
+                <Lock size={20} color="#94a3b8" style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, styles.passwordInput]}
                   placeholder="パスワード"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor="#94a3b8"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -169,9 +169,9 @@ export default function LoginScreen() {
                   testID="toggle-password"
                 >
                   {showPassword ? (
-                    <EyeOff size={20} color="#9CA3AF" />
+                    <EyeOff size={20} color="#94a3b8" />
                   ) : (
-                    <Eye size={20} color="#9CA3AF" />
+                    <Eye size={20} color="#94a3b8" />
                   )}
                 </TouchableOpacity>
               </View>
@@ -234,31 +234,35 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#ffffff',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: '#e2e8f0',
     textAlign: 'center',
   },
   formContainer: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(42, 42, 74, 0.6)',
     borderRadius: 24,
     padding: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
@@ -270,7 +274,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#1F2937',
+    color: '#ffffff',
   },
   passwordInput: {
     paddingRight: 40,
@@ -281,7 +285,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   loginButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: '#4f46e5',
     borderRadius: 12,
     height: 56,
     justifyContent: 'center',
@@ -303,17 +307,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   registerText: {
-    color: '#6B7280',
+    color: '#cbd5e1',
     fontSize: 14,
   },
   registerLink: {
-    color: '#FF6B9D',
+    color: '#6366f1',
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 4,
   },
   testButton: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -321,7 +327,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   testButtonText: {
-    color: '#6B7280',
+    color: '#cbd5e1',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -377,7 +383,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   errorButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: '#4f46e5',
     borderRadius: 12,
     height: 48,
     justifyContent: 'center',
