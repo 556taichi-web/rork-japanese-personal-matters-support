@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase, type NutritionLog } from '@/lib/supabase';
+import { supabase, type NutritionLog, type Database } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 
 interface NutritionQueryOptions {
@@ -69,12 +69,14 @@ export function useCreateNutritionLog() {
     mutationFn: async (logData: CreateNutritionLogData) => {
       if (!user?.id) throw new Error('User not authenticated');
       
+      const insertData: Database['public']['Tables']['nutrition_logs']['Insert'] = {
+        ...logData,
+        user_id: user.id,
+      };
+      
       const { data, error } = await supabase
         .from('nutrition_logs')
-        .insert({
-          ...logData,
-          user_id: user.id,
-        })
+        .insert(insertData)
         .select()
         .single();
       
