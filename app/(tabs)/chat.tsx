@@ -41,6 +41,7 @@ export default function ChatScreen() {
 
   const { messages, sendMessage: sendAIMessage } = useRorkAgent({
     tools: {},
+    model: 'claude-3-5-sonnet-20241022',
   });
 
   const quickQuestions: QuickQuestion[] = [
