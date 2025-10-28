@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { 
   Send, 
@@ -19,16 +20,10 @@ import {
   Target,
   TrendingUp
 } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { Colors } from '@/constants/colors';
 import { trpc } from '@/lib/trpc';
-
-interface Message {
-  id: string;
-  text: string;
-  isUser: boolean;
-  timestamp: Date;
-}
+import { useRorkAgent } from '@rork/toolkit-sdk';
 
 interface QuickQuestion {
   id: string;
@@ -37,20 +32,16 @@ interface QuickQuestion {
 }
 
 export default function ChatScreen() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'こんにちは！私はあなた専用のAIパーソナルトレーナーです。健康やフィットネスに関することなら何でもお聞きください！💪',
-      isUser: false,
-      timestamp: new Date()
-    }
-  ]);
+  const insets = useSafeAreaInsets();
   const [inputText, setInputText] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const [userContext, setUserContext] = useState<any>(null);
 
   const userContextQuery = trpc?.chat.getUserContext.useQuery();
+
+  const { messages, sendMessage: sendAIMessage } = useRorkAgent({
+    tools: {},
+  });
 
   const quickQuestions: QuickQuestion[] = [
     {
@@ -76,12 +67,18 @@ export default function ChatScreen() {
     }
   }, [userContextQuery.data]);
 
-  const buildSystemPrompt = () => {
-    if (!userContext) {
+  const isLoading = messages.length > 0 && 
+    messages[messages.length - 1]?.role === 'assistant' &&
+    messages[messages.length - 1]?.parts?.some(p => 
+      p.type === 'text' && p.text === ''
+    );
+
+  const buildSystemPromptFromContext = (context: any) => {
+    if (!context) {
       return 'あなたは親しみやすく、専門的なAIパーソナルトレーナーです。20-30代女性向けに、健康、フィットネス、ダイエット、栄養に関するアドバイスを日本語で提供してください。親しみやすい口調で、実践的で安全なアドバイスを心がけてください。';
     }
 
-    const { profile, workoutStats, nutritionStats } = userContext;
+    const { profile, workoutStats, nutritionStats } = context;
     
     let contextInfo = 'あなたは親しみやすく、専門的なAIパーソナルトレーナーです。以下のユーザー情報を参考に、パーソナライズされたアドバイスを日本語で提供してください。\n\n';
     
@@ -143,66 +140,9 @@ export default function ChatScreen() {
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: text.trim(),
-      isUser: true,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
     setInputText('');
-    setIsLoading(true);
-
-    try {
-      const systemPrompt = buildSystemPrompt();
-      
-      const response = await fetch('https://toolkit.rork.com/text/llm/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: systemPrompt
-            },
-            {
-              role: 'user',
-              content: text.trim()
-            }
-          ]
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.json();
-      
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: data.completion || 'すみません、回答を生成できませんでした。もう一度お試しください。',
-        isUser: false,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'すみません、接続に問題が発生しました。もう一度お試しください。',
-        isUser: false,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    const systemPrompt = buildSystemPromptFromContext(userContext);
+    await sendAIMessage(`${systemPrompt}\n\n${text.trim()}`);
   };
 
   const handleQuickQuestion = (question: string) => {
@@ -224,10 +164,9 @@ export default function ChatScreen() {
       colors={Colors.backgroundGradient}
       style={styles.container}
     >
-      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         <LinearGradient
           colors={Colors.surfaceGradient}
-          style={styles.header}
+          style={[styles.header, { paddingTop: insets.top + 20 }]}
         >
         <View style={styles.headerContent}>
           <View style={styles.botAvatar}>
@@ -253,38 +192,48 @@ export default function ChatScreen() {
           showsVerticalScrollIndicator={false}
         >
           {messages.map((message) => (
-            <View
-              key={message.id}
-              style={[
-                styles.messageContainer,
-                message.isUser ? styles.userMessageContainer : styles.aiMessageContainer
-              ]}
-            >
-              {!message.isUser && (
-                <View style={styles.aiAvatar}>
-                  <Bot size={16} color="#FF6B9D" />
-                </View>
-              )}
-              <View
-                style={[
-                  styles.messageBubble,
-                  message.isUser ? styles.userMessageBubble : styles.aiMessageBubble
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.messageText,
-                    message.isUser ? styles.userMessageText : styles.aiMessageText
-                  ]}
-                >
-                  {message.text}
-                </Text>
-              </View>
-              {message.isUser && (
-                <View style={styles.userAvatar}>
-                  <User size={16} color="white" />
-                </View>
-              )}
+            <View key={message.id}>
+              {message.parts.map((part, i) => {
+                if (part.type === 'text') {
+                  const isUser = message.role === 'user';
+                  return (
+                    <View
+                      key={`${message.id}-${i}`}
+                      style={[
+                        styles.messageContainer,
+                        isUser ? styles.userMessageContainer : styles.aiMessageContainer
+                      ]}
+                    >
+                      {!isUser && (
+                        <View style={styles.aiAvatar}>
+                          <Bot size={16} color="#FF6B9D" />
+                        </View>
+                      )}
+                      <View
+                        style={[
+                          styles.messageBubble,
+                          isUser ? styles.userMessageBubble : styles.aiMessageBubble
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.messageText,
+                            isUser ? styles.userMessageText : styles.aiMessageText
+                          ]}
+                        >
+                          {part.text}
+                        </Text>
+                      </View>
+                      {isUser && (
+                        <View style={styles.userAvatar}>
+                          <User size={16} color="white" />
+                        </View>
+                      )}
+                    </View>
+                  );
+                }
+                return null;
+              })}
             </View>
           ))}
           
@@ -299,7 +248,7 @@ export default function ChatScreen() {
             </View>
           )}
 
-          {messages.length === 1 && (
+          {messages.length === 0 && (
             <View style={styles.quickQuestionsContainer}>
               <Text style={styles.quickQuestionsTitle}>よくある質問</Text>
               {quickQuestions.map((question) => (
@@ -346,16 +295,12 @@ export default function ChatScreen() {
           </TouchableOpacity>
         </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  safeArea: {
     flex: 1,
   },
   header: {
