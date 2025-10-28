@@ -73,9 +73,9 @@ export function useCreateNutritionLog() {
         ...logData,
         user_id: user.id,
       };
-      
-      const { data, error } = await supabase
-        .from('nutrition_logs')
+
+      const { data, error } = await (supabase
+        .from('nutrition_logs') as any)
         .insert(insertData)
         .select()
         .single();
