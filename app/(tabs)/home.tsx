@@ -32,6 +32,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/colors';
 import { MacroCircle } from '@/components/MacroCircle';
 import { ProgressBar } from '@/components/ProgressBar';
+import { WorkoutChart } from '@/components/WorkoutChart';
 
 interface StatCard {
   id: string;
@@ -319,6 +320,12 @@ export default function HomeScreen() {
                   </View>
                 </LinearGradient>
               </View>
+            </View>
+
+            {/* Workout Analytics Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>トレーニング進捗</Text>
+              <WorkoutChart />
             </View>
 
             {/* Weight Section */}

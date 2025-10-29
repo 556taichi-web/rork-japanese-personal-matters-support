@@ -7,6 +7,7 @@ import { createWorkoutProcedure } from "./routes/workouts/create-workout/route";
 import { getNutritionLogsProcedure } from "./routes/nutrition/get-nutrition-logs/route";
 import { createNutritionLogProcedure } from "./routes/nutrition/create-nutrition-log/route";
 import { getUserContextProcedure } from "./routes/chat/get-user-context/route";
+import { getWorkoutAnalyticsProcedure } from "./routes/workouts/get-workout-analytics/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   workouts: createTRPCRouter({
     list: getWorkoutsProcedure,
     create: createWorkoutProcedure,
+    analytics: getWorkoutAnalyticsProcedure,
   }),
   nutrition: createTRPCRouter({
     logs: getNutritionLogsProcedure,
