@@ -113,40 +113,6 @@ export function WorkoutChart() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabsContainer}
-        style={styles.tabsScroll}
-      >
-        {CHART_CATEGORIES.map((category) => {
-          const hasDataForCategory =
-            analyticsQuery.data && analyticsQuery.data[category]?.length > 0;
-          
-          if (!hasDataForCategory) return null;
-
-          return (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.tab,
-                selectedCategory === category && styles.tabActive,
-              ]}
-              onPress={() => setSelectedCategory(category)}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  selectedCategory === category && styles.tabTextActive,
-                ]}
-              >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
       <LinearGradient colors={Colors.surfaceGradient} style={styles.chartContainer}>
         <View style={styles.chartHeader}>
           <Text style={styles.chartTitle}>{selectedCategory} - 最大重量 (kg)</Text>
@@ -202,6 +168,40 @@ export function WorkoutChart() {
           </View>
         )}
       </LinearGradient>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabsContainer}
+        style={styles.tabsScroll}
+      >
+        {CHART_CATEGORIES.map((category) => {
+          const hasDataForCategory =
+            analyticsQuery.data && analyticsQuery.data[category]?.length > 0;
+          
+          if (!hasDataForCategory) return null;
+
+          return (
+            <TouchableOpacity
+              key={category}
+              style={[
+                styles.tab,
+                selectedCategory === category && styles.tabActive,
+              ]}
+              onPress={() => setSelectedCategory(category)}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  selectedCategory === category && styles.tabTextActive,
+                ]}
+              >
+                {category}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   tabsScroll: {
-    marginBottom: 16,
+    marginTop: 16,
   },
   tabsContainer: {
     paddingRight: 16,

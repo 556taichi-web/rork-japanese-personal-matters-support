@@ -215,55 +215,10 @@ export default function HomeScreen() {
           </View>
         ) : (
           <>
-            {/* Daily Overview Card */}
+            {/* Workout Analytics Section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>今日の概要</Text>
-              <LinearGradient
-                colors={Colors.surfaceGradient}
-                style={styles.overviewCard}
-              >
-                <View style={styles.caloriesSection}>
-                  <View style={styles.caloriesHeader}>
-                    <Text style={styles.caloriesLabel}>カロリー</Text>
-                    <Text style={styles.caloriesRemaining}>
-                      残り {Math.max(0, nutritionData.calories.target - nutritionData.calories.current)} kcal
-                    </Text>
-                  </View>
-                  <View style={styles.caloriesProgress}>
-                    <View style={styles.caloriesBar}>
-                      <View 
-                        style={[
-                          styles.caloriesBarFill, 
-                          { 
-                            width: `${Math.min((nutritionData.calories.current / nutritionData.calories.target) * 100, 100)}%` 
-                          }
-                        ]} 
-                      />
-                    </View>
-                    <Text style={styles.caloriesText}>
-                      {nutritionData.calories.current} / {nutritionData.calories.target}
-                    </Text>
-                  </View>
-                </View>
-                
-                <View style={styles.macrosGrid}>
-                  <View style={styles.macroItem}>
-                    <View style={[styles.macroIndicator, { backgroundColor: Colors.carbs }]} />
-                    <Text style={styles.macroLabel}>炭水化物</Text>
-                    <Text style={styles.macroValue}>{nutritionData.carbs.current}g</Text>
-                  </View>
-                  <View style={styles.macroItem}>
-                    <View style={[styles.macroIndicator, { backgroundColor: Colors.protein }]} />
-                    <Text style={styles.macroLabel}>タンパク質</Text>
-                    <Text style={styles.macroValue}>{nutritionData.protein.current}g</Text>
-                  </View>
-                  <View style={styles.macroItem}>
-                    <View style={[styles.macroIndicator, { backgroundColor: Colors.fat }]} />
-                    <Text style={styles.macroLabel}>脂質</Text>
-                    <Text style={styles.macroValue}>{nutritionData.fat.current}g</Text>
-                  </View>
-                </View>
-              </LinearGradient>
+              <Text style={styles.sectionTitle}>��レーニング進捗</Text>
+              <WorkoutChart />
             </View>
 
             {/* Activity Section */}
@@ -322,10 +277,55 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* Workout Analytics Section */}
+            {/* Daily Overview Card */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>トレーニング進捗</Text>
-              <WorkoutChart />
+              <Text style={styles.sectionTitle}>今日の概要</Text>
+              <LinearGradient
+                colors={Colors.surfaceGradient}
+                style={styles.overviewCard}
+              >
+                <View style={styles.caloriesSection}>
+                  <View style={styles.caloriesHeader}>
+                    <Text style={styles.caloriesLabel}>カロリー</Text>
+                    <Text style={styles.caloriesRemaining}>
+                      残り {Math.max(0, nutritionData.calories.target - nutritionData.calories.current)} kcal
+                    </Text>
+                  </View>
+                  <View style={styles.caloriesProgress}>
+                    <View style={styles.caloriesBar}>
+                      <View 
+                        style={[
+                          styles.caloriesBarFill, 
+                          { 
+                            width: `${Math.min((nutritionData.calories.current / nutritionData.calories.target) * 100, 100)}%` 
+                          }
+                        ]} 
+                      />
+                    </View>
+                    <Text style={styles.caloriesText}>
+                      {nutritionData.calories.current} / {nutritionData.calories.target}
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.macrosGrid}>
+                  <View style={styles.macroItem}>
+                    <View style={[styles.macroIndicator, { backgroundColor: Colors.carbs }]} />
+                    <Text style={styles.macroLabel}>炭水化物</Text>
+                    <Text style={styles.macroValue}>{nutritionData.carbs.current}g</Text>
+                  </View>
+                  <View style={styles.macroItem}>
+                    <View style={[styles.macroIndicator, { backgroundColor: Colors.protein }]} />
+                    <Text style={styles.macroLabel}>タンパク質</Text>
+                    <Text style={styles.macroValue}>{nutritionData.protein.current}g</Text>
+                  </View>
+                  <View style={styles.macroItem}>
+                    <View style={[styles.macroIndicator, { backgroundColor: Colors.fat }]} />
+                    <Text style={styles.macroLabel}>脂質</Text>
+                    <Text style={styles.macroValue}>{nutritionData.fat.current}g</Text>
+                  </View>
+                </View>
+              </LinearGradient>
             </View>
 
             {/* Weight Section */}
